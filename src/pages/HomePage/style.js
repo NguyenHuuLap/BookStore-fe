@@ -7,6 +7,10 @@ export const WrapperTypeProduct = styled.div`
     gap: 24px;
     justify-content: flex-start;
     height: 44px;
+    // &:hover {
+    //     color: #C92127;
+    //     border-radius: 4px;
+    // }
 `
 
 export const WrapperButtonMore = styled(ButtonComponent)`

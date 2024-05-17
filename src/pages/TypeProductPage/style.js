@@ -17,3 +17,11 @@ export const WrapperNavbar = styled(Col)`
     margin-top:20px;
     width: 200px;
 `
+
+export const WrapperTypeProduct = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    justify-content: flex-start;
+    height: 44px;
+`

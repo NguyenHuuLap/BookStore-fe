@@ -3,9 +3,12 @@ import styled from "styled-components";
 
 export const WrapperCardStyle = styled(Card)`
     width: 200px;
+    padding: 8px;
     & img {
-        height: 200px;
-        width: 200px;
+       text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     },
     position: relative;
     background-color: ${props => props.disabled ? '#ccc' : '#fff'};
@@ -13,11 +16,20 @@ export const WrapperCardStyle = styled(Card)`
 `
 
 export const StyleNameProduct = styled.div`
-    font-weight: 400;
-    font-size: 12px;
-    line-height: 16px;
-    color: rgb(56, 56, 61);
-    font-weight: 400;
+   padding-top: 0px !important;
+    line-height: 1.4em;
+    word-break: break-word;
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    min-height: 2.8em;
+    max-height: 2.8em;
+    font-size: 0.78em;
+    color: #0D0E0F;
+    text-align: left;
 `
 
 export const WrapperReportText = styled.div`

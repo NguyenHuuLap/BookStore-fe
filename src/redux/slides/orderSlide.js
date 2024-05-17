@@ -13,7 +13,8 @@ const initialState = {
   user: '',
   isPaid: false,
   paidAt: '',
-  isDelivered: false,
+  // isDelivered: false,
+  status: 'pending',
   deliveredAt: '',
   isSucessOrder: false,
 }

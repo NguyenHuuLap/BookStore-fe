@@ -93,11 +93,11 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
           <Col span={14}>
             <ButttonInputSearch
               size="large"
-              bordered={false}
               textbutton="Tìm kiếm"
-              placeholder="input search text"
+              placeholder="Tìm kiếm"
               onChange={onSearch}
-              backgroundColorButton="#5a20c1"
+              backgroundColorButton="#C92127"
+              bordered="1px solid #C92127"
             />
           </Col>
         )}
@@ -110,6 +110,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
                   width: '30px',
                   borderRadius: '50%',
                   objectFit: 'cover'
+                  
                 }} />
               ) : (
                 <UserOutlined style={{ fontSize: '30px' }} />
@@ -131,10 +132,10 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
               )}
             </WrapperHeaderAccout>
           </Loading>
-          {!isHiddenCart && (
+          {user?.access_token && (
             <div onClick={() => navigate('/order')} style={{ cursor: 'pointer' }}>
               <Badge count={order?.orderItems?.length} size="small">
-                <ShoppingCartOutlined style={{ fontSize: '30px', color: '#fff' }} />
+                <ShoppingCartOutlined style={{ fontSize: '30px', color: '#2e2d2d' }} />
               </Badge>
               <WrapperTextHeaderSmall>Giỏ hàng</WrapperTextHeaderSmall>
             </div>

@@ -1,5 +1,5 @@
 import { Checkbox, InputNumber } from "antd";
-import styled  from "styled-components";
+import styled from "styled-components";
 
 export const WrapperStyleHeader = styled.div`
   background: rgb(255, 255, 255);
@@ -49,7 +49,7 @@ export const WrapperPriceDiscount = styled.span`
   text-decoration: line-through;
   margin-left: 4px;
 `
-export const WrapperCountOrder  = styled.div`
+export const WrapperCountOrder = styled.div`
   display: flex;
   align-items: center;
   width: 84px;
@@ -86,16 +86,20 @@ export const WrapperTotal = styled.div`
 `
 
 export const CustomCheckbox = styled(Checkbox)`
+  .ant-checkbox-checked:after {
+    border: 1px solid #C92127;
+  }
   .ant-checkbox-checked .ant-checkbox-inner {
-    background-color: #9255FD;
-    border-color: #9255FD;
+    background-color: #C92127;
+    border-color: #C92127;
   }
   .ant-checkbox:hover .ant-checkbox-inner {
-    border-color: #9255FD;
+    border-color: #C92127;
   }
 `
 
 export const WrapperInputNumber = styled(InputNumber)`
+    margin-left: 5px;
     &.ant-input-number.ant-input-number-sm {
         width: 40px;
         border-top: none;

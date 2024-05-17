@@ -26,3 +26,11 @@ export const WrapperTextPrice = styled.div`
     backgroundColor: rgb(238, 238, 238);
     width: fit-cotent;
 `
+
+export const WrapperTypeProduct = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    justify-content: flex-start;
+    height: 44px;
+`

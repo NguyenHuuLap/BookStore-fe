@@ -12,11 +12,13 @@ export const WrapperStyleColImage = styled(Col)`
 `
 
 export const WrapperStyleNameProduct = styled.h1`
-    color: rgb(36, 36, 36);
-    font-size: 24px;
-    font-weight: 300;
-    line-height: 32px;
-    word-break: break-word;
+    font-size: 1.7em;
+    font-weight: 600;
+    color: #333;
+    font-family: 'Nunito Sans', 'sans-serif';
+    line-height: 1.5em;
+    overflow-wrap: break-word;
+    // padding-bottom: 16px;
 `
 
 export const WrapperStyleTextSell = styled.span`
@@ -26,17 +28,42 @@ export const WrapperStyleTextSell = styled.span`
 `
 
 export const WrapperPriceProduct = styled.div`
-    background: rgb(250, 250, 250);
+    display: flex;
+    // background: rgb(250, 250, 250);
     border-radius: 4px;
 `
 
-export const WrapperPriceTextProduct = styled.h1`
+export const WrapperPriceTextProductDiscount = styled.h1`
     font-size: 32px;
     line-height: 40px;
     margin-right: 8px;
     font-weight: 500;
     padding: 10px;
     margin-top: 10px;
+    color: #cd5033;    
+`
+
+export const WrapperPriceTextProduct = styled.h1`
+    font-size: 16px;
+    line-height: 40px;
+    margin-right: 8px;
+    font-weight: 350;
+    padding: 10px;
+    margin-top: 10px;
+    color: #0D0E0F;
+    text-decoration: line-through;
+`
+
+export const WrapperDiscount = styled.span`
+    margin-left: 8px;
+    padding: 4px;
+    -webkit-border-radius: 4px;
+    background-color: #C92127;
+    color: #fff;
+    font-size: 1em;
+    font-weight: 600;
+    margin-top: 25px;
+    height: 28px;
 `
 
 export const WrapperAddressProduct = styled.div`
@@ -75,4 +102,37 @@ export const WrapperInputNumber = styled(InputNumber)`
             display: none !important;
         }
     };
+`
+
+export const WrapperDecription = styled.div`
+    margin-top: 15px;
+    padding: 16px;
+    background: rgb(255, 255, 255);
+    border-radius: 8px;
+    height: 100%;
+    font-size: 1.1em !important;
+    font-weight: 400;
+    color: #333333;
+`
+
+export const WrapperTextNew = styled.span`
+    color: #333333;
+    font-size: 13px;
+    font-weight: 400;
+    padding-right: 5px;
+    width: 400px;
+`
+
+export const WrapperSA = styled.div`
+    font-family: 'Roboto', sans-serif !important;
+    line-height: 2;
+    display: flex;
+`
+
+export const WrapperSATwo = styled.div`
+    color: #333333;
+    font-size: 13px;
+    font-weight: 400;
+    padding-right: 5px;
+    margin-left: 100px;
 `

@@ -4,7 +4,7 @@ import styled from "styled-components";
 import imageShop from '../../assets/image/Shop.png';
 
 export const WrapperHeader = styled(Row)`
-    background-color: rgb(26, 148, 255);
+    background-color: #FFE880;
     align-items: center;
     gap: 16px;
     flex-wrap: nowrap;
@@ -26,14 +26,14 @@ export const WrapperTextHeader = styled(Link)`
 export const WrapperHeaderAccout = styled.div`
     display: flex;
     align-items: center;
-    color: #fff;
+    color: #2e2d2d;
     gap: 10px;
     max-width: 200px;
 `
 
 export const WrapperTextHeaderSmall = styled.span`
     font-size: 12px;
-    color: #fff;
+    color: #2e2d2d;
     white-space: nowrap;
 `
 

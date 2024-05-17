@@ -4,6 +4,9 @@ import Loading from '../../components/LoadingComponent/Loading'
 import { Excel } from "antd-table-saveas-excel";
 import { useMemo } from 'react';
 
+// import * as XLSX from 'xlsx';
+// import { saveAs } from 'file-saver';
+
 const TableComponent = (props) => {
   const { selectionType = 'checkbox', data:dataSource = [], isLoading = false, columns = [], handleDelteMany } = props
   const [rowSelectedKeys, setRowSelectedKeys] = useState([])
