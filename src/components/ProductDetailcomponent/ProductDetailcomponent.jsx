@@ -1,6 +1,5 @@
 import { Col, Image, Rate, Row } from 'antd'
 import React from 'react'
-import imageProductSmall from '../../assets/image/imagesmall.webp'
 import {
     WrapperStyleImageSmall,
     WrapperStyleColImage,
@@ -28,12 +27,12 @@ import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { addOrderProduct, resetOrder } from '../../redux/slides/orderSlide'
-import { convertPrice, initFacebookSDK } from '../../utils'
+import { convertPrice } from '../../utils'
 import { useEffect } from 'react'
 import * as message from '../Message/Message'
-import LikeButtonComponent from '../LikeButtonComponent/LikeButtonComponent'
-import CommentComponent from '../CommentComponent/CommentComponent'
 import { useMemo } from 'react'
+import * as CommentService from '../../services/CommentService';
+import * as UserService from '../../services/UserService';
 
 const ProductDetailsComponent = ({ idProduct }) => {
     const [numProduct, setNumProduct] = useState(1)
@@ -52,6 +51,22 @@ const ProductDetailsComponent = ({ idProduct }) => {
         const id = context?.queryKey && context?.queryKey[1]
         if (id) {
             const res = await ProductService.getDetailsProduct(id)
+            return res.data
+        }
+    }
+
+    const fetchGetDetailsComment = async (context) => {
+        const id = context?.queryKey && context?.queryKey[1]
+        if (id) {
+            const res = await CommentService.getDetailsComment(id)
+            return res.data
+        }
+    }
+
+    const fetchGetDetailsUser = async (context) => {
+        const id = context?.queryKey && context?.queryKey[1]
+        if (id) {
+            const res = await UserService.getDetailsUser(id)
             return res.data
         }
     }
@@ -87,21 +102,12 @@ const ProductDetailsComponent = ({ idProduct }) => {
     }
 
     const { isLoading, data: productDetails } = useQuery(['product-details', idProduct], fetchGetDetailsProduct, { enabled: !!idProduct })
+    const { isLoading: isLoadingComment, data: commentDetails } = useQuery(['comment-details', idProduct], fetchGetDetailsComment, { enabled: !!idProduct })
+
     const handleAddOrderProduct = () => {
         if (!user?.id) {
             navigate('/login', { state: location?.pathname })
         } else {
-            // {
-            //     name: { type: String, required: true },
-            //     amount: { type: Number, required: true },
-            //     image: { type: String, required: true },
-            //     price: { type: Number, required: true },
-            //     product: {
-            //         type: mongoose.Schema.Types.ObjectId,
-            //         ref: 'Product',
-            //         required: true,
-            //     },
-            // },
             const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id)
             if ((orderRedux?.amount + numProduct) <= orderRedux?.countInstock || (!orderRedux && productDetails?.countInStock > 0)) {
                 dispatch(addOrderProduct({
@@ -128,21 +134,16 @@ const ProductDetailsComponent = ({ idProduct }) => {
         navigate('/order')
     }
     const discountedPrice = useMemo(() => {
-        return productDetails ? productDetails.price * (1 - productDetails.discount / 100) : 0
-    }, [productDetails])
+        return productDetails ? productDetails.price * (1 - (productDetails.discount || 0) / 100) : 0;
+    }, [productDetails]);
 
     return (
         <Loading isLoading={isLoading}>
-            {productDetails ? (
+            {productDetails || isLoadingComment ? (
                 <Row style={{ padding: '16px', background: '#fff', borderRadius: '4px', height: '100%' }}>
                     <Col span={10} style={{ borderRight: '1px solid #e5e5e5', paddingRight: '8px' }}>
                         <Image src={productDetails?.image} alt="image product" preview={true} />
                         <Row style={{ paddingTop: '10px', justifyContent: 'space-between' }}>
-                            {/* {productDetails.images.map((img, index) => (
-                                <WrapperStyleColImage span={4} key={index}>
-                                    <WrapperStyleImageSmall src={img} alt={`image small ${index}`} preview={true} />
-                                </WrapperStyleColImage>
-                            ))} */}
                             <WrapperStyleColImage span={4} sty>
                                 <WrapperStyleImageSmall src={productDetails?.image1} alt="image small" preview={true} />
                             </WrapperStyleColImage>
@@ -185,21 +186,19 @@ const ProductDetailsComponent = ({ idProduct }) => {
                             </WrapperSA>
                         </div>
                         <WrapperPriceProduct>
-                            <WrapperPriceTextProductDiscount>{convertPrice(discountedPrice)} </WrapperPriceTextProductDiscount>
-                            <WrapperPriceTextProduct>{convertPrice(productDetails?.price)} </WrapperPriceTextProduct>
-                            <WrapperDiscount>{productDetails.discount}%</WrapperDiscount>
+                            {productDetails && (
+                                <>
+                                    <WrapperPriceTextProductDiscount>{convertPrice(discountedPrice)}</WrapperPriceTextProductDiscount>
+                                    <WrapperPriceTextProduct>{convertPrice(productDetails.price)}</WrapperPriceTextProduct>
+                                    <WrapperDiscount>{productDetails.discount}%</WrapperDiscount>
+                                </>
+                            )}
                         </WrapperPriceProduct>
                         <WrapperAddressProduct>
                             <span>Giao đến </span>
                             <span className='address'>{user?.address}</span> -
                             <span className='change-address'>Đổi địa chỉ</span>
                         </WrapperAddressProduct>
-                        {/* <LikeButtonComponent
-                            dataHref={process.env.REACT_APP_IS_LOCAL
-                                ? "https://developers.facebook.com/docs/plugins/"
-                                : window.location.href
-                            }
-                        /> */}
                         <div style={{ margin: '10px 0 20px', padding: '10px 0', borderTop: '1px solid #e5e5e5', borderBottom: '1px solid #e5e5e5' }}>
                             <div style={{ marginBottom: '10px' }}>Số lượng</div>
                             <WrapperQualityProduct>
@@ -246,19 +245,22 @@ const ProductDetailsComponent = ({ idProduct }) => {
                             ></ButtonComponent>
                         </div>
                     </Col>
-                    {/* <CommentComponent
-                        dataHref={process.env.REACT_APP_IS_LOCAL
-                            ? "https://developers.facebook.com/docs/plugins/comments#configurator"
-                            : window.location.href
-                        }
-                        width="1270"
-                    /> */}
                 </Row >
             ) : null}
             <WrapperDecription style={{ whiteSpace: 'pre-line' }}>
                 <div style={{ fontSize: "1.45em", fontWeight: "700" }}>Thông tin sản phẩm</div>
                 {productDetails?.description}
             </WrapperDecription>
+            <WrapperDecription style={{ whiteSpace: 'pre-line' }}>
+                <div style={{ fontSize: "1.45em", fontWeight: "700" }}>Comment</div>
+                {commentDetails?.map((comment, index) => (
+                    <div key={index}>
+                        <div>{comment.user.name}</div>
+                        <div>{comment.comment}</div>
+                    </div>
+                ))}
+            </WrapperDecription>
+
         </Loading>
     )
 }
