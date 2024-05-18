@@ -6,9 +6,11 @@ import HeaderComponent from '../../components/HeaderComponent/HeaderComponent';
 import AdminUser from '../../components/AdminUser/AdminUser';
 import AdminProduct from '../../components/AdminProduct/AdminProduct';
 import OrderAdmin from '../../components/OrderAdmin/OrderAmin';
+import AdminComment from '../../components/AdminComment/AdminComment';
 import * as OrderService from '../../services/OrderService'
 import * as ProductService from '../../services/ProductService'
 import * as UserService from '../../services/UserService'
+import * as CommentService from '../../services/CommentService'
 
 import CustomizedContent from './Components/CustomizedContent';
 import { useSelector } from 'react-redux';
@@ -23,51 +25,57 @@ const AdminPage = () => {
     getItem('Người dùng', 'users', <UserOutlined />),
     getItem('Sản phẩm', 'products', <AppstoreOutlined />),
     getItem('Đơn hàng', 'orders', <ShoppingCartOutlined />),
-    
+    getItem('Đánh giá', 'comment', <ShoppingCartOutlined />),
+
   ];
 
   const [keySelected, setKeySelected] = useState('');
   const getAllOrder = async () => {
     const res = await OrderService.getAllOrder(user?.access_token)
-    return {data: res?.data, key: 'orders'}
+    return { data: res?.data, key: 'orders' }
   }
 
   const getAllProducts = async () => {
     const res = await ProductService.getAllProduct()
-    console.log('res1', res)
-    return {data: res?.data, key: 'products'}
+    return { data: res?.data, key: 'products' }
   }
 
   const getAllUsers = async () => {
     const res = await UserService.getAllUser(user?.access_token)
-    console.log('res', res)
-    return {data: res?.data, key: 'users'}
+    return { data: res?.data, key: 'users' }
+  }
+
+  const getAllComment = async () => {
+    const res = await CommentService.getAllComment()
+    return { data: res?.data, key: 'comment' }
   }
 
   const queries = useQueries({
     queries: [
-      {queryKey: ['products'], queryFn: getAllProducts, staleTime: 1000 * 60},
-      {queryKey: ['users'], queryFn: getAllUsers, staleTime: 1000 * 60},
-      {queryKey: ['orders'], queryFn: getAllOrder, staleTime: 1000 * 60},
+      { queryKey: ['products'], queryFn: getAllProducts, staleTime: 1000 * 60 },
+      { queryKey: ['users'], queryFn: getAllUsers, staleTime: 1000 * 60 },
+      { queryKey: ['orders'], queryFn: getAllOrder, staleTime: 1000 * 60 },
+      { queryKey: ['comment'], queryFn: getAllComment, staleTime: 1000 * 60 },
     ]
   })
   const memoCount = useMemo(() => {
     const result = {}
     try {
-      if(queries) {
+      if (queries) {
         queries.forEach((query) => {
           result[query?.data?.key] = query?.data?.data?.length
         })
       }
-    return result
+      return result
     } catch (error) {
       return result
     }
-  },[queries])
+  }, [queries])
   const COLORS = {
-   users: ['#e66465', '#9198e5'],
-   products: ['#a8c0ff', '#3f2b96'],
-   orders: ['#11998e', '#38ef7d'],
+    users: ['#e66465', '#9198e5'],
+    products: ['#a8c0ff', '#3f2b96'],
+    orders: ['#11998e', '#38ef7d'],
+    comment: ['#11998e', '#38ef7d'],
   };
 
   const renderPage = (key) => {
@@ -84,6 +92,10 @@ const AdminPage = () => {
         return (
           <OrderAdmin />
         )
+      case 'comment':
+        return (
+          <AdminComment />
+        )
       default:
         return <></>
     }
@@ -96,7 +108,7 @@ const AdminPage = () => {
   return (
     <>
       <HeaderComponent isHiddenSearch isHiddenCart />
-      <div style={{ display: 'flex',overflowX: 'hidden' }}>
+      <div style={{ display: 'flex', overflowX: 'hidden' }}>
         <Menu
           mode="inline"
           style={{
@@ -108,7 +120,7 @@ const AdminPage = () => {
           onClick={handleOnCLick}
         />
         <div style={{ flex: 1, padding: '15px 0 15px 15px' }}>
-          <Loading isLoading={memoCount && Object.keys(memoCount) &&  Object.keys(memoCount).length !== 3}>
+          <Loading isLoading={memoCount && Object.keys(memoCount) && Object.keys(memoCount).length !== 3}>
             {!keySelected && (
               <CustomizedContent data={memoCount} colors={COLORS} setKeySelected={setKeySelected} />
             )}

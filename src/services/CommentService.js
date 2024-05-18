@@ -3,9 +3,6 @@ import { axiosJWT } from "./UserService"
 
 export const createComment = async (id, comment, access_token) => {
     const data = { comment, id }
-    console.log(data)
-    // console.log(comment)
-    // console.log(commentItem)
     const res = await axiosJWT.post(`${process.env.REACT_APP_API_URL}/comment/create/${id}`, data, {
         headers: {
             token: `Bearer ${access_token}`,
@@ -19,6 +16,11 @@ export const getDetailsComment = async (id) => {
     return res.data
 }
 
+export const getDetailsCommentByProduct = async (id) => {
+    const res = await axios.get(`${process.env.REACT_APP_API_URL}/comment/get-details-comment/${id}`)
+    return res.data
+}
+
 export const getAllComment = async (access_token) => {
     const res = await axiosJWT.get(`${process.env.REACT_APP_API_URL}/comment/get-all-comment`, {
         headers: {
@@ -29,6 +31,8 @@ export const getAllComment = async (access_token) => {
 }
 
 export const updateComment = async (id, data, access_token) => {
+    // const data = { comment, id }
+    console.log('data',data)
     const res = await axiosJWT.put(`${process.env.REACT_APP_API_URL}/comment/update/${id}`, data, {
         headers: {
             token: `Bearer ${access_token}`,

@@ -101,3 +101,20 @@ export const convertPrice = (price) => {
         return []
     }
   }
+
+  export const convertDataChartByStatus = (data, key) => {
+    const statusSummary = data.reduce((acc, order) => {
+      if (order.status) {
+        if (!acc[order.status]) {
+          acc[order.status] = 0;
+        }
+        acc[order.status] += order.totalPrice;
+      }
+      return acc;
+    }, {});
+  
+    return Object.keys(statusSummary).map((status) => ({
+      name: orderContant.status[status],
+      value: statusSummary[status]
+    }));
+  };

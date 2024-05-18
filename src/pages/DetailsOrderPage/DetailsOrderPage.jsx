@@ -39,6 +39,7 @@ const DetailsOrderPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null); // New state for selected product
   const [form] = Form.useForm();
+  const [isOrderComplete, setIsOrderComplete] = useState(false);
 
   const fetchDetailsOrder = async () => {
     const res = await OrderService.getDetailsOrder(id, state?.token);
@@ -103,6 +104,13 @@ const DetailsOrderPage = () => {
     setSelectedProduct(null); // Reset selected product
     form.resetFields();
   };
+
+  useEffect(() => {
+    if (data) {
+      // Kiểm tra nếu trạng thái của đơn hàng là "complete" thì set isOrderComplete thành true
+      setIsOrderComplete(data.status === 'complete');
+    }
+  }, [data]);
 
   useEffect(() => {
     if (isSuccess) {
@@ -208,7 +216,7 @@ const DetailsOrderPage = () => {
                 <WrapperItem>{convertPrice(order?.price)}</WrapperItem>
                 <WrapperItem>{order?.amount}</WrapperItem>
                 <WrapperItem>{order?.discount ? convertPrice(priceMemo * order?.discount / 100) : '0 VND'}</WrapperItem>
-                {order?.isReviewed ? null : (
+                {isOrderComplete && !order.isReviewed && (
                   <Button onClick={() => handleReviewClick(order)}>Đánh giá</Button>
                 )}
               </WrapperProduct>

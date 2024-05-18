@@ -147,6 +147,7 @@ const MyOrderPage = () => {
                           }}
                           textbutton={'Hủy đơn hàng'}
                           styleTextButton={{ color: '#9255FD', fontSize: '14px' }}
+                          disabled={order.status === 'shipping' || order.status === 'complete'}
                         />
                       )}
                       <ButtonComponent

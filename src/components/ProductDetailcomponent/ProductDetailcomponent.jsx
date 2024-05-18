@@ -58,7 +58,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
     const fetchGetDetailsComment = async (context) => {
         const id = context?.queryKey && context?.queryKey[1]
         if (id) {
-            const res = await CommentService.getDetailsComment(id)
+            const res = await CommentService.getDetailsCommentByProduct(id)
             return res.data
         }
     }
