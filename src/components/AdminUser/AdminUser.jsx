@@ -16,6 +16,7 @@ import { useMutationHooks } from '../../hooks/useMutationHook'
 import * as UserService from '../../services/UserService'
 import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query'
 import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
+import moment from 'moment';
 
 const AdminUser = () => {
   const [rowSelected, setRowSelected] = useState('')
@@ -121,7 +122,7 @@ const AdminUser = () => {
   // const queryClient = useQueryClient()
   // const users = queryClient.getQueryData(['users'])
   // const isFetchingUser = useIsFetching(['users'])
-  const queryUser = useQuery({queryKey: ['user'], queryFn: getAllUser})
+  const queryUser = useQuery({ queryKey: ['user'], queryFn: getAllUser })
   const { isLoading: isLoadingUser, data: users } = queryUser
   const renderAction = () => {
     return (
@@ -131,6 +132,10 @@ const AdminUser = () => {
       </div>
     )
   }
+
+  const formatDate = (dateString) => {
+    return moment(dateString).format('YYYY-MM-DD');
+  };
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -255,6 +260,20 @@ const AdminUser = () => {
       ...getColumnSearchProps('phone')
     },
     {
+      title: 'Create At',
+      dataIndex: 'createdAt',
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      render: (createdAt) => formatDate(createdAt), // Format date for display
+      ...getColumnSearchProps('createdAt')
+    },
+    {
+      title: 'Update At',
+      dataIndex: 'updatedAt',
+      sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
+      render: (updatedAt) => formatDate(updatedAt), // Format date for display
+      ...getColumnSearchProps('updatedAt')
+    },
+    {
       title: 'Action',
       dataIndex: 'action',
       render: renderAction
@@ -308,7 +327,7 @@ const AdminUser = () => {
   const handleDeleteUser = () => {
     mutationDeleted.mutate({ id: rowSelected, token: user?.access_token }, {
       onSettled: () => {
-       queryUser.refetch()
+        queryUser.refetch()
       }
     })
   }

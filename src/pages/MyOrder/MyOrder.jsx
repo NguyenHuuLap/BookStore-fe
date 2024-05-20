@@ -59,6 +59,23 @@ const MyOrderPage = () => {
 
   const { isLoading: isLoadingCancel, isSuccess: isSuccessCancel, isError: isErrorCancel, data: dataCancel } = mutation;
 
+  const mutationComplete = useMutationHooks(
+    (data) => {
+      const { id, token, orderItems, userId } = data;
+      return OrderService.cancelOrder(id, token, orderItems, userId);
+    }
+  );
+
+  const handleCompleteOrder = (order) => {
+    mutationComplete.mutate({ id: order._id, token: state?.token, orderItems: order?.orderItems, userId: user.id }, {
+      onSuccess: () => {
+        queryOrder.refetch();
+      },
+    });
+  };
+
+  const { isLoading: isLoadingComplete, isSuccess: isSuccessComplete, isError: isErrorComplete, data: dataComplete } = mutationComplete;
+
   useEffect(() => {
     if (isSuccessCancel && dataCancel?.status === 'OK') {
       message.success();

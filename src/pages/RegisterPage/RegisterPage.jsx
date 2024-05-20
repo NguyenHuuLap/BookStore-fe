@@ -1,27 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ButtonComponent from '../../components/ButtonComponent/ButtonComponent';
 import InputForm from '../../components/InputForm/InputForm';
 import { WrapperContainerLeft, WrapperContainerRight, WrapperTextLight } from './style';
 import imageLogo from '../../assets/image/logo-login.png';
 import { Image } from 'antd';
-import { useState } from 'react';
 import { EyeFilled, EyeInvisibleFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import * as UserService from '../../services/UserService';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import Loading from '../../components/LoadingComponent/Loading';
 import * as message from '../../components/Message/Message';
-import { useSelector, useDispatch } from 'react-redux';
-
-import { updateUser } from '../../redux/slides/userSlide';
-
-import { Button, Upload } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import { getBase64 } from '../../utils';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
-
   const [isShowPassword, setIsShowPassword] = useState(false);
   const [isShowConfirmPassword, setIsShowConfirmPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -30,10 +21,54 @@ const RegisterPage = () => {
   const [emailError, setEmailError] = useState(false);
   const [passwordError, setPasswordError] = useState(false);
   const [confirmPasswordError, setConfirmPasswordError] = useState(false);
+  const [passwordValidationError, setPasswordValidationError] = useState('');
 
   const handleOnchangeEmail = (value) => {
     setEmail(value);
     setEmailError(false);
+  };
+
+  const handleOnchangePassword = (value) => {
+    setPassword(value);
+    setPasswordError(false);
+    setPasswordValidationError('');
+  };
+
+  const handleOnchangeConfirmPassword = (value) => {
+    setConfirmPassword(value);
+    setConfirmPasswordError(false);
+  };
+
+  const validatePassword = (password) => {
+    const passwordReg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return passwordReg.test(password);
+  };
+
+  const handleSignUp = () => {
+    let valid = true;
+    if (!email.trim()) {
+      setEmailError(true);
+      valid = false;
+    }
+    if (!password.trim()) {
+      setPasswordError(true);
+      valid = false;
+    }
+    if (!confirmPassword.trim()) {
+      setConfirmPasswordError(true);
+      valid = false;
+    }
+    if (password !== confirmPassword) {
+      setConfirmPasswordError(true);
+      valid = false;
+    }
+    if (!validatePassword(password)) {
+      setPasswordValidationError('Mật khẩu phải chứa ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt');
+      valid = false;
+    }
+    if (valid) {
+      mutation.mutate({ email, password, confirmPassword });
+    }
   };
 
   const mutation = useMutationHooks((data) => UserService.registerUser(data));
@@ -45,35 +80,12 @@ const RegisterPage = () => {
       message.success('Đăng ký thành công!');
       handleNavigateLogin();
     } else if (isError) {
-      message.error('Đăng ký thất bại!');
+      message.error(data?.message || 'Đăng ký thất bại!');
     }
   }, [isSuccess, isError]);
 
-  const handleOnchangePassword = (value) => {
-    setPassword(value);
-    setPasswordError(false);
-  };
-
-  const handleOnchangeConfirmPassword = (value) => {
-    setConfirmPassword(value);
-    setConfirmPasswordError(false);
-  };
-
   const handleNavigateLogin = () => {
     navigate('/login');
-  };
-
-  const handleSignUp = () => {
-    if (!email.trim()) {
-      setEmailError(true);
-    }
-    if (!password.trim()) {
-      setPasswordError(true);
-    }
-    if (!confirmPassword.trim()) {
-      setConfirmPasswordError(true);
-    }
-    mutation.mutate({ email, password, confirmPassword });
   };
 
   // Handle registration when Enter key is pressed anywhere on the page
@@ -119,6 +131,7 @@ const RegisterPage = () => {
             <InputForm placeholder="password" style={{ marginBottom: '10px' }} type={isShowPassword ? "text" : "password"}
               value={password} onChange={handleOnchangePassword} />
             {passwordError && <span style={{ color: 'red', fontSize: '12px' }}>Vui lòng nhập mật khẩu</span>}
+            {passwordValidationError && <span style={{ color: 'red', fontSize: '12px' }}>{passwordValidationError}</span>}
           </div>
           <div style={{ position: 'relative' }}>
             <span
@@ -142,7 +155,6 @@ const RegisterPage = () => {
             />
             {confirmPasswordError && <span style={{ color: 'red', fontSize: '12px' }}>Vui lòng nhập lại mật khẩu</span>}
           </div>
-          {/* {data?.status === 'ERR' && <span style={{ color: 'red' }}>{data?.message}</span>} */}
           <Loading isLoading={isLoading}>
             <ButtonComponent
               disabled={!email.length || !password.length || !confirmPassword.length}

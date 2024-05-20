@@ -101,6 +101,11 @@ const ProductDetailsComponent = ({ idProduct }) => {
         }
     }
 
+    const formatDate = (dateString) => {
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString(undefined, options);
+    };
+
     const { isLoading, data: productDetails } = useQuery(['product-details', idProduct], fetchGetDetailsProduct, { enabled: !!idProduct })
     const { isLoading: isLoadingComment, data: commentDetails } = useQuery(['comment-details', idProduct], fetchGetDetailsComment, { enabled: !!idProduct })
 
@@ -254,12 +259,14 @@ const ProductDetailsComponent = ({ idProduct }) => {
             <WrapperDecription style={{ whiteSpace: 'pre-line' }}>
                 <div style={{ fontSize: "1.45em", fontWeight: "700" }}>Comment</div>
                 {commentDetails?.map((comment, index) => (
-                    <div key={index}>
-                        <div>{comment.user.name}</div>
-                        <div>{comment.comment}</div>
+                    <div key={index} style={{ display: 'flex', flexDirection: 'row', marginBottom: '1em' }}>
+                        <div style={{ fontWeight: 'bold', marginRight: '1em' }}>{comment.user.name}:</div>
+                        <div style={{ marginRight: '1em' }}>{comment.comment}</div>
+                        <div>{formatDate(comment.createdAt)}</div>
                     </div>
                 ))}
             </WrapperDecription>
+
 
         </Loading>
     )

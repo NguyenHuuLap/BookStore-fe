@@ -11,6 +11,7 @@ import Loading from '../LoadingComponent/Loading';
 import ModalComponent from '../ModalComponent/ModalComponent';
 import * as message from '../../components/Message/Message';
 import * as CommentService from '../../services/CommentService';
+import moment from 'moment';
 
 const AdminComment = () => {
   const [rowSelected, setRowSelected] = useState('');
@@ -112,6 +113,10 @@ const AdminComment = () => {
     clearFilters();
   };
 
+  const formatDate = (dateString) => {
+    return moment(dateString).format('YYYY-MM-DD');
+  };
+
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
       <div style={{ padding: 8 }} onKeyDown={(e) => e.stopPropagation()}>
@@ -179,6 +184,20 @@ const AdminComment = () => {
       dataIndex: 'star',
       sorter: (a, b) => a.star - b.star,
       ...getColumnSearchProps('star'),
+    },
+    {
+      title: 'Create At',
+      dataIndex: 'createdAt',
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      render: (createdAt) => formatDate(createdAt), // Format date for display
+      ...getColumnSearchProps('createdAt')
+    },
+    {
+      title: 'Update At',
+      dataIndex: 'updatedAt',
+      sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
+      render: (updatedAt) => formatDate(updatedAt), // Format date for display
+      ...getColumnSearchProps('updatedAt')
     },
     {
       title: 'Action',

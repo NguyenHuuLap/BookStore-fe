@@ -5,14 +5,13 @@ import TableComponent from '../TableComponent/TableComponent'
 import InputComponent from '../InputComponent/InputComponent'
 import DrawerComponent from '../DrawerComponent/DrawerComponent'
 import Loading from '../LoadingComponent/Loading'
-import ModalComponent from '../ModalComponent/ModalComponent'
-import { convertPrice, getBase64 } from '../../utils'
+import { convertPrice } from '../../utils'
 import { useEffect } from 'react'
 import * as message from '../Message/Message'
 
 import * as OrderService from '../../services/OrderService'
 import { useQuery } from '@tanstack/react-query'
-import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
+import { EditOutlined, SearchOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
 import { orderContant } from '../../contant'
 import PieChartComponent from './PieChart'
@@ -20,6 +19,7 @@ import { useState } from 'react'
 import { useRef } from 'react'
 import { useMutationHooks } from '../../hooks/useMutationHook'
 import StatusPieChartComponent from './StatusPieChartComponent'
+import moment from 'moment'
 
 const OrderAdmin = () => {
   const user = useSelector((state) => state?.user)
@@ -50,12 +50,8 @@ const OrderAdmin = () => {
 
   const mutationUpdate = useMutationHooks(
     (data) => {
-      const { id,
-        token,
-        ...rests } = data
-      const res = OrderService.updateOrder(
-        id,
-        { ...rests }, token)
+      const { id, token, ...rests } = data
+      const res = OrderService.updateOrder(id, { ...rests }, token)
       return res
     },
   )
@@ -91,12 +87,13 @@ const OrderAdmin = () => {
 
   const handleDetailsUser = () => {
     setIsOpenDrawer(true)
-
   }
+
   const { data: dataUpdated, isLoading: isLoadingUpdated, isSuccess: isSuccessUpdated, isError: isErrorUpdated } = mutationUpdate
 
   const queryOrder = useQuery({ queryKey: ['orders'], queryFn: getAllOrder })
   const { isLoading: isLoadingOrders, data: orders } = queryOrder
+
   const renderAction = () => {
     return (
       <div>
@@ -119,6 +116,10 @@ const OrderAdmin = () => {
     })
   }
 
+  const formatDate = (dateString) => {
+    return moment(dateString).format('YYYY-MM-DD');
+  };
+
   const getColumnSearchProps = (dataIndex) => ({
     filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
       <div
@@ -128,11 +129,9 @@ const OrderAdmin = () => {
         onKeyDown={(e) => e.stopPropagation()}
       >
         <InputComponent
-          // ref={searchInput}
           placeholder={`Search ${dataIndex}`}
           value={selectedKeys[0]}
           onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          // onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
           style={{
             marginBottom: 8,
             display: 'block',
@@ -141,7 +140,6 @@ const OrderAdmin = () => {
         <Space>
           <Button
             type="primary"
-            // onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
             icon={<SearchOutlined />}
             size="small"
             style={{
@@ -151,7 +149,6 @@ const OrderAdmin = () => {
             Search
           </Button>
           <Button
-            // onClick={() => clearFilters && handleReset(clearFilters)}
             size="small"
             style={{
               width: 90,
@@ -171,25 +168,6 @@ const OrderAdmin = () => {
     ),
     onFilter: (value, record) =>
       record[dataIndex].toString().toLowerCase().includes(value.toLowerCase()),
-    onFilterDropdownOpenChange: (visible) => {
-      if (visible) {
-        // setTimeout(() => searchInput.current?.select(), 100);
-      }
-    },
-    // render: (text) =>
-    //   searchedColumn === dataIndex ? (
-    //     // <Highlighter
-    //     //   highlightStyle={{
-    //     //     backgroundColor: '#ffc069',
-    //     //     padding: 0,
-    //     //   }}
-    //     //   searchWords={[searchText]}
-    //     //   autoEscape
-    //     //   textToHighlight={text ? text.toString() : ''}
-    //     // />
-    //   ) : (
-    //     text
-    //   ),
   });
 
   const columns = [
@@ -236,6 +214,20 @@ const OrderAdmin = () => {
       ...getColumnSearchProps('totalPrice')
     },
     {
+      title: 'Create At',
+      dataIndex: 'createdAt',
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      render: (createdAt) => formatDate(createdAt), // Format date for display
+      ...getColumnSearchProps('createdAt')
+    },
+    {
+      title: 'Update At',
+      dataIndex: 'updatedAt',
+      sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
+      render: (updatedAt) => formatDate(updatedAt), // Format date for display
+      ...getColumnSearchProps('updatedAt')
+    },
+    {
       title: 'Action',
       dataIndex: 'action',
       render: renderAction
@@ -274,8 +266,7 @@ const OrderAdmin = () => {
     } else if (isSuccessUpdated && dataUpdated?.status == 'ERR' && dataUpdated?.message == 'Cannot update status because the current status is complete') {
       message.error('Đơn hàng đã hoàn tất không thể thay đổi')
       handleCloseDrawer()
-    }
-    else if (isSuccessUpdated && dataUpdated?.status == 'ERR' && dataUpdated?.message == 'Cannot update status because the current status is cancel') {
+    } else if (isSuccessUpdated && dataUpdated?.status == 'ERR' && dataUpdated?.message == 'Cannot update status because the current status is cancel') {
       message.error('Đơn hàng đã hủy không thể thay đổi')
       handleCloseDrawer()
     }
@@ -288,11 +279,13 @@ const OrderAdmin = () => {
   return (
     <div>
       <WrapperHeader>Quản lý đơn hàng</WrapperHeader>
-      <div style={{ height: 200, width: 200 }}>
-        <PieChartComponent data={orders?.data} />
-      </div>
-      <div style={{ height: 200, width: 200, marginTop: '20px' }}>
-        <StatusPieChartComponent data={orders?.data} />
+      <div style={{ display: 'flex', gap: '20px' }}>
+        <div style={{ height: 200, width: 200 }}>
+          <PieChartComponent data={orders?.data} />
+        </div>
+        <div style={{ height: 200, width: 200 }}>
+          <StatusPieChartComponent data={orders?.data} />
+        </div>
       </div>
       <div style={{ marginTop: '20px' }}>
         <TableComponent columns={columns} isLoading={isLoadingOrders} data={dataTable} onRow={(record, rowIndex) => {
@@ -305,7 +298,6 @@ const OrderAdmin = () => {
       </div>
       <DrawerComponent title='Chi tiết người dùng' isOpen={isOpenDrawer} onClose={() => setIsOpenDrawer(false)} width="90%">
         <Loading isLoading={isLoadingUpdate || isLoadingUpdated}>
-
           <Form
             name="basic"
             labelCol={{ span: 2 }}

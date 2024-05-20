@@ -43,9 +43,9 @@ const LoginPage = () => {
           handleGetDetailsUser(decoded?.id, data?.access_token);
         }
       }
-    } else if (isError) {
+    } else if (isSuccess && data?.message === 'The password or user is incorrect') {
       // Display error message
-      message.error('Đăng nhập thất bại!');
+      message.error('Mật khẩu sai!');
     }
   }, [isSuccess, isError]);
 

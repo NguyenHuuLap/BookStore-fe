@@ -1,10 +1,9 @@
 import React from 'react'
-import { useEffect } from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import ButtonComponent from '../../components/ButtonComponent/ButtonComponent'
 import InputForm from '../../components/InputForm/InputForm'
-import { WrapperContentProfile, WrapperHeader, WrapperInput, WrapperLabel, WrapperUploadFile, StyledCheckbox} from './style'
+import { WrapperContentProfile, WrapperHeader, WrapperInput, WrapperLabel, WrapperUploadFile, StyledCheckbox } from './style'
 import * as UserService from '../../services/UserService'
 import { useMutationHooks } from '../../hooks/useMutationHook'
 import Loading from '../../components/LoadingComponent/Loading'
@@ -22,20 +21,23 @@ const ProfilePage = () => {
     const [address, setAddress] = useState('')
     const [avatar, setAvatar] = useState('')
 
-    const [isChangePassword, setIsChangePassword] = useState(false);
-    const [currentPassword, setCurrentPassword] = useState('');
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [isChangePassword, setIsChangePassword] = useState(false)
+    const [currentPassword, setCurrentPassword] = useState('')
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmNewPassword, setConfirmNewPassword] = useState('')
+    const [passwordValidationError, setPasswordValidationError] = useState('');
+    const [passwordError, setPasswordError] = useState(false);
+    const [confirmPasswordError, setConfirmPasswordError] = useState(false);
 
     const mutation = useMutationHooks(
         (data) => {
             const { id, access_token, ...rests } = data
-            UserService.updateUser(id, rests, access_token)
+            return UserService.updateUser(id, rests, access_token)
         }
     )
 
     const dispatch = useDispatch()
-    const { data, isLoading, isSuccess, isError } = mutation
+    const { data, isLoading, isSuccess, isError, error } = mutation
 
     console.log(data)
 
@@ -48,13 +50,15 @@ const ProfilePage = () => {
     }, [user])
 
     useEffect(() => {
-        if (isSuccess) {
-            message.success()
+        if (isSuccess && data?.status == "OK") {
+            message.success("Cập nhật thành công!")
             handleGetDetailsUser(user?.id, user?.access_token)
-        } else if (isError) {
-            message.error()
+        } else if (isSuccess && data?.status == "ERR" && data?.message == "Incorrect current password") {
+            const errorMessage = error?.response?.data?.message || 'Incorrect current password!'
+            console.log(data?.status)
+            message.error(errorMessage)
         }
-    }, [isSuccess, isError])
+    }, [isSuccess, isError, error])
 
     const handleGetDetailsUser = async (id, token) => {
         const res = await UserService.getDetailsUser(id, token)
@@ -74,30 +78,52 @@ const ProfilePage = () => {
         setAddress(value)
     }
     const handleOnchangeCurrentPassword = (value) => {
-        setCurrentPassword(value);
+        setCurrentPassword(value)
     }
 
     const handleOnchangeNewPassword = (value) => {
-        setNewPassword(value);
-    };
+        setNewPassword(value)
+    }
 
     const handleOnchangeConfirmNewPassword = (value) => {
-        setConfirmNewPassword(value);
-    };
+        setConfirmNewPassword(value)
+    }
 
     const handleOnChangeChangePasswordCheckbox = () => {
-        setIsChangePassword(!isChangePassword);
+        setIsChangePassword(!isChangePassword)
     }
 
     const handleOnchangeAvatar = async ({ fileList }) => {
         const file = fileList[0]
         if (!file.url && !file.preview) {
-            file.preview = await getBase64(file.originFileObj);
+            file.preview = await getBase64(file.originFileObj)
         }
         setAvatar(file.preview)
     }
 
+    const validatePassword = (password) => {
+        const passwordReg = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        return passwordReg.test(password);
+    };
+
     const handleUpdate = () => {
+        let valid = true;
+        if (!newPassword.trim()) {
+            setPasswordError(true);
+            valid = false;
+        }
+        if (!confirmNewPassword.trim()) {
+            setConfirmPasswordError(true);
+            valid = false;
+        }
+        if (newPassword !== confirmNewPassword) {
+            setConfirmPasswordError(true);
+            valid = false;
+        }
+        if (!validatePassword(newPassword)) {
+            setPasswordValidationError('Mật khẩu phải chứa ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt');
+            valid = false;
+        }
         const dataToUpdate = {
             id: user?.id,
             email,
@@ -106,17 +132,19 @@ const ProfilePage = () => {
             address,
             avatar,
             access_token: user?.access_token
-        };
+        }
 
         // Nếu người dùng chọn đổi mật khẩu mới, thêm các trường mật khẩu mới vào đối tượng dữ liệu
         if (isChangePassword) {
-            dataToUpdate.currentPassword = currentPassword;
-            dataToUpdate.newPassword = newPassword;
-            dataToUpdate.confirmNewPassword = confirmNewPassword;
+            if (valid) {
+                dataToUpdate.currentPassword = currentPassword
+                dataToUpdate.newPassword = newPassword
+                dataToUpdate.confirmNewPassword = confirmNewPassword
+            }
         }
-        mutation.mutate(dataToUpdate);
-
+        mutation.mutate(dataToUpdate)
     }
+
     return (
         <div style={{ width: '1270px', margin: '0 auto', height: '500px' }}>
             <WrapperHeader>Thông tin người dùng</WrapperHeader>
@@ -168,7 +196,7 @@ const ProfilePage = () => {
                                     placeholder='Mật khẩu hiện tại'
                                     style={{ width: '300px' }}
                                     id="currentPassword"
-                                    // type="password"
+                                    type="password"
                                     value={currentPassword}
                                     onChange={handleOnchangeCurrentPassword}
                                 />
@@ -179,10 +207,12 @@ const ProfilePage = () => {
                                     placeholder='Nhập mật khẩu mới'
                                     style={{ width: '300px' }}
                                     id="newPassword"
-                                    // type="password"
+                                    type="password"
                                     value={newPassword}
                                     onChange={handleOnchangeNewPassword}
                                 />
+                                {passwordError && <span style={{ color: 'red', fontSize: '12px' }}>Vui lòng nhập mật khẩu</span>}
+                                {passwordValidationError && <span style={{ color: 'red', fontSize: '12px' }}>{passwordValidationError}</span>}
                             </WrapperInput>
                             <WrapperInput>
                                 <WrapperLabel htmlFor="confirmNewPassword">Xác nhận mật khẩu mới</WrapperLabel>
@@ -190,10 +220,11 @@ const ProfilePage = () => {
                                     placeholder='Xác nhận mật khẩu'
                                     style={{ width: '300px' }}
                                     id="confirmNewPassword"
-                                    // type="password"
+                                    type="password"
                                     value={confirmNewPassword}
                                     onChange={handleOnchangeConfirmNewPassword}
                                 />
+                                {confirmPasswordError && <span style={{ color: 'red', fontSize: '12px' }}>Vui lòng nhập lại mật khẩu</span>}
                             </WrapperInput>
                         </>
                     )}
@@ -201,12 +232,12 @@ const ProfilePage = () => {
                         onClick={handleUpdate}
                         size={40}
                         styleButton={{
-                            height: '40px', // Adjust height as needed
-                            width: '120px', // Adjust width as needed
+                            height: '40px',
+                            width: '120px',
                             borderRadius: '4px',
-                            padding: '8px', // Adjust padding as needed
-                            marginTop: '10px', // Adjust margin-top as needed to change position
-                            marginLeft: '210px', // Adjust margin-left as needed to change position
+                            padding: '8px',
+                            marginTop: '10px',
+                            marginLeft: '210px',
                             background: '#C92127',
                             border: '2px solid transparent'
                         }}

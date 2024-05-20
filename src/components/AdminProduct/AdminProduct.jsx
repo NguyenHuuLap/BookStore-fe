@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query'
 import DrawerComponent from '../DrawerComponent/DrawerComponent'
 import { useSelector } from 'react-redux'
 import ModalComponent from '../ModalComponent/ModalComponent'
+import moment from 'moment';
 
 const AdminProduct = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -185,7 +186,9 @@ const AdminProduct = () => {
       </div>
     )
   }
-
+  const formatDate = (dateString) => {
+    return moment(dateString).format('YYYY-MM-DD');
+  };
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
@@ -347,6 +350,20 @@ const AdminProduct = () => {
     {
       title: 'Type',
       dataIndex: 'type',
+    },
+    {
+      title: 'Create At',
+      dataIndex: 'createdAt',
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      render: (createdAt) => formatDate(createdAt), // Format date for display
+      ...getColumnSearchProps('createdAt')
+    },
+    {
+      title: 'Update At',
+      dataIndex: 'updatedAt',
+      sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
+      render: (updatedAt) => formatDate(updatedAt), // Format date for display
+      ...getColumnSearchProps('updatedAt')
     },
     {
       title: 'Action',
