@@ -142,6 +142,14 @@ const ProductDetailsComponent = ({ idProduct }) => {
         return productDetails ? productDetails.price * (1 - (productDetails.discount || 0) / 100) : 0;
     }, [productDetails]);
 
+    function formatStars(star) {
+        let stars = '';
+        for (let i = 0; i < star; i++) {
+            stars += '⭐';
+        }
+        return stars;
+    }
+
     return (
         <Loading isLoading={isLoading}>
             {productDetails || isLoadingComment ? (
@@ -257,12 +265,45 @@ const ProductDetailsComponent = ({ idProduct }) => {
                 {productDetails?.description}
             </WrapperDecription>
             <WrapperDecription style={{ whiteSpace: 'pre-line' }}>
-                <div style={{ fontSize: "1.45em", fontWeight: "700" }}>Comment</div>
+                <div style={{ fontSize: "1.45em", fontWeight: "700" }}>Đánh giá sản phẩm</div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '1em' }}>
+         
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', fontSize: '4em', fontWeight: '600', lineHeight: '1.1em' }}>
+                            {Math.round((commentDetails?.reduce((total, comment) => total + comment.star, 0) / commentDetails?.length) * 100) / 100}
+                            <div style={{ fontSize: '0.5em', marginLeft: '0.2em' }}>/5</div>
+                        </div>
+                    </div>
+                    <div>
+                        {formatStars(Math.round((commentDetails?.reduce((total, comment) => total + comment.star, 0) / commentDetails?.length) * 100) / 100)}
+                    </div>
+                    <div style={{ fontSize: '13px', fontWeight: '400', color: '#7A7E7F' }}>({commentDetails?.length} đánh giá)</div>
+                    <div style={{ width: '100%' }}>
+                        {[5, 4, 3, 2, 1].map(star => {
+                            const starReviews = commentDetails?.filter(comment => comment.star === star).length || 0;
+                            const percentage = ((starReviews / commentDetails?.length) * 100).toFixed(2);
+                            return (
+                                <div key={star} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5em' }}>
+                                    <div style={{ width: '50px', textAlign: 'right', marginRight: '10px' }}>{star} sao</div>
+                                    <div style={{ backgroundColor: '#ddd', width: '200px', height: '6px', marginRight: '10px', position: 'relative' }}>
+                                        <div style={{ backgroundColor: '#f7a04b', width: `${percentage}%`, height: '100%' }}></div>
+                                    </div>
+                                    <div style={{ width: '50px', textAlign: 'left' }}>{percentage}%</div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
                 {commentDetails?.map((comment, index) => (
-                    <div key={index} style={{ display: 'flex', flexDirection: 'row', marginBottom: '1em' }}>
-                        <div style={{ fontWeight: 'bold', marginRight: '1em' }}>{comment.user.name}:</div>
-                        <div style={{ marginRight: '1em' }}>{comment.comment}</div>
-                        <div>{formatDate(comment.createdAt)}</div>
+                    <div key={index} style={{ marginBottom: '1em', backgroundColor: '#f5f5f5', border: '1px solid #ccc', padding: '1em' }}>
+                        <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '0.5em' }}>
+                            <div style={{ fontSize: '1.1em', fontWeight: '600', marginRight: '1em', width: '172px', height: '21px' }}>{comment.user.name}</div>
+                            <div style={{ width: '172px', height: '21px' }}>{formatStars(comment.star)}</div>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'row', marginBottom: '0.5em' }}>
+                            <div style={{ width: '172px', height: '21px', color: '#7A7E7F' }}>{formatDate(comment.createdAt)}</div>
+                            <div style={{ marginLeft: '1em' }}>{comment.comment}</div>
+                        </div>
                     </div>
                 ))}
             </WrapperDecription>
