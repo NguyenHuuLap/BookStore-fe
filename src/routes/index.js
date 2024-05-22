@@ -82,6 +82,7 @@ export const routes = [
     },
     {
         path: '*',
-        page: NotFoundPage
+        page: NotFoundPage,
+        isShowHeader: true
     }
 ]

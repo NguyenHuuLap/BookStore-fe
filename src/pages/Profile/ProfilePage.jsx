@@ -9,7 +9,7 @@ import { useMutationHooks } from '../../hooks/useMutationHook'
 import Loading from '../../components/LoadingComponent/Loading'
 import * as message from '../../components/Message/Message'
 import { updateUser } from '../../redux/slides/userSlide'
-import { Button, Upload } from 'antd'
+import { Button } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import { getBase64 } from '../../utils'
 

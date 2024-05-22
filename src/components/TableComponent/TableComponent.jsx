@@ -1,11 +1,9 @@
 import { Table } from 'antd';
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Loading from '../../components/LoadingComponent/Loading'
 import { Excel } from "antd-table-saveas-excel";
-import { useMemo } from 'react';
 
-// import * as XLSX from 'xlsx';
-// import { saveAs } from 'file-saver';
+import { saveAs } from 'file-saver';
 
 const TableComponent = (props) => {
   const { selectionType = 'checkbox', data:dataSource = [], isLoading = false, columns = [], handleDelteMany } = props
@@ -19,11 +17,6 @@ const TableComponent = (props) => {
     onChange: (selectedRowKeys, selectedRows) => {
       setRowSelectedKeys(selectedRowKeys)
     },
-    // getCheckboxProps: (record) => ({
-    //   disabled: record.name === 'Disabled User',
-    //   // Column configuration not to be checked
-    //   name: record.name,
-    // }),
   };
   const handleDeleteAll = () => {
     handleDelteMany(rowSelectedKeys)

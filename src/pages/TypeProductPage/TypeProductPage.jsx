@@ -9,12 +9,10 @@ import Loading from '../../components/LoadingComponent/Loading'
 import { useSelector } from 'react-redux'
 import { useDebounce } from '../../hooks/useDebounce'
 import TypeProduct from '../../components/TypeProduct/TypeProduct'
-import { useQuery } from '@tanstack/react-query'
 
 const TypeProductPage = () => {
     const searchProduct = useSelector((state) => state?.product?.search)
     const searchDebounce = useDebounce(searchProduct, 500)
-    const [limit, setLimit] = useState(6)
     const [typeProducts, setTypeProducts] = useState([])
     const { state } = useLocation()
     const [products, setProducts] = useState([])
@@ -32,17 +30,10 @@ const TypeProductPage = () => {
         supplier: []
     })
 
-    const fetchProductAll = async (context) => {
-        const limit = context?.queryKey && context?.queryKey[1]
-        const search = context?.queryKey && context?.queryKey[2]
-        const res = await ProductService.getAllProduct(search, limit)
-        return res
-    }
-
     const fetchProductType = async (type, page, limit) => {
         setLoading(true)
         const res = await ProductService.getProductType(type, page, limit)
-        if (res?.status == 'OK') {
+        if (res?.status === 'OK') {
             setLoading(false)
             setProducts(res?.data)
             setPanigate({ ...panigate, total: res?.totalPage })
@@ -90,7 +81,6 @@ const TypeProductPage = () => {
         setFilters(filters)
     }
 
-    // Extract distinct values for form, author, and supplier
     const distinctForms = [...new Set(products.map(product => product.form))]
     const distinctAuthors = [...new Set(products.map(product => product.author))]
     const distinctSuppliers = [...new Set(products.map(product => product.supplier))]

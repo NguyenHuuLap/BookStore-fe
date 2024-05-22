@@ -16,6 +16,7 @@ import DrawerComponent from '../DrawerComponent/DrawerComponent'
 import { useSelector } from 'react-redux'
 import ModalComponent from '../ModalComponent/ModalComponent'
 import moment from 'moment';
+import { convertPrice } from '../../utils'
 
 const AdminProduct = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -372,7 +373,7 @@ const AdminProduct = () => {
     },
   ];
   const dataTable = products?.data?.length && products?.data?.map((product) => {
-    return { ...product, key: product._id }
+    return { ...product, key: product._id, price: convertPrice(product?.price) }
   })
 
   useEffect(() => {
