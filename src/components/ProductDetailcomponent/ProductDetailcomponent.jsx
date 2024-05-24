@@ -1,5 +1,5 @@
-import { Col, Image, Rate, Row } from 'antd'
-import React from 'react'
+import { Col, Image, Row } from 'antd';
+import React from 'react';
 import {
     WrapperStyleImageSmall,
     WrapperStyleColImage,
@@ -10,110 +10,109 @@ import {
     WrapperAddressProduct,
     WrapperQualityProduct,
     WrapperInputNumber,
-    WrapperBtnQualityProduct,
     WrapperPriceTextProductDiscount,
     WrapperDiscount,
     WrapperDecription,
     WrapperSA,
     WrapperSATwo,
     WrapperTextNew
-} from './style'
-import { PlusOutlined, MinusOutlined } from '@ant-design/icons'
-import ButtonComponent from '../ButtonComponent/ButtonComponent'
-import * as ProductService from '../../services/ProductService'
-import { useQuery } from '@tanstack/react-query'
-import Loading from '../LoadingComponent/Loading'
-import { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { addOrderProduct, resetOrder } from '../../redux/slides/orderSlide'
-import { convertPrice } from '../../utils'
-import { useEffect } from 'react'
-import * as message from '../Message/Message'
-import { useMemo } from 'react'
+} from './style';
+import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
+import ButtonComponent from '../ButtonComponent/ButtonComponent';
+import * as ProductService from '../../services/ProductService';
+import { useQuery } from '@tanstack/react-query';
+import Loading from '../LoadingComponent/Loading';
+import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { addOrderProduct, resetOrder } from '../../redux/slides/orderSlide';
+import { convertPrice } from '../../utils';
+import { useEffect } from 'react';
+import * as message from '../Message/Message';
+import { useMemo } from 'react';
 import * as CommentService from '../../services/CommentService';
 import * as UserService from '../../services/UserService';
 
 const ProductDetailsComponent = ({ idProduct }) => {
-    const [numProduct, setNumProduct] = useState(1)
-    const user = useSelector((state) => state.user)
-    const order = useSelector((state) => state.order)
-    const [errorLimitOrder, setErrorLimitOrder] = useState(false)
-    const navigate = useNavigate()
-    const location = useLocation()
-    const dispatch = useDispatch()
+    const [numProduct, setNumProduct] = useState(1);
+    const user = useSelector((state) => state.user);
+    const order = useSelector((state) => state.order);
+    const [errorLimitOrder, setErrorLimitOrder] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const dispatch = useDispatch();
 
     const onChange = (value) => {
-        setNumProduct(Number(value))
-    }
+        setNumProduct(Number(value));
+    };
 
     const fetchGetDetailsProduct = async (context) => {
-        const id = context?.queryKey && context?.queryKey[1]
+        const id = context?.queryKey && context?.queryKey[1];
         if (id) {
-            const res = await ProductService.getDetailsProduct(id)
-            return res.data
+            const res = await ProductService.getDetailsProduct(id);
+            return res.data;
         }
-    }
+    };
 
     const fetchGetDetailsComment = async (context) => {
-        const id = context?.queryKey && context?.queryKey[1]
+        const id = context?.queryKey && context?.queryKey[1];
         if (id) {
-            const res = await CommentService.getDetailsCommentByProduct(id)
-            return res.data
+            const res = await CommentService.getDetailsCommentByProduct(id);
+            return res.data;
         }
-    }
+    };
 
     const fetchGetDetailsUser = async (context) => {
-        const id = context?.queryKey && context?.queryKey[1]
+        const id = context?.queryKey && context?.queryKey[1];
         if (id) {
-            const res = await UserService.getDetailsUser(id)
-            return res.data
+            const res = await UserService.getDetailsUser(id);
+            return res.data;
         }
-    }
+    };
 
     useEffect(() => {
-        const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id)
+        const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id);
         if ((orderRedux?.amount + numProduct) <= orderRedux?.countInstock || (!orderRedux && productDetails?.countInStock > 0)) {
-            setErrorLimitOrder(false)
+            setErrorLimitOrder(false);
         } else if (productDetails?.countInStock === 0) {
-            setErrorLimitOrder(true)
+            setErrorLimitOrder(true);
         }
-    }, [numProduct])
+    }, [numProduct]);
 
     useEffect(() => {
         if (order && order.isSucessOrder) {
-            message.success('Đã thêm vào giỏ hàng')
+            message.success('Đã thêm vào giỏ hàng');
         }
         return () => {
-            dispatch(resetOrder())
-        }
-    }, [order?.isSucessOrder])
+            dispatch(resetOrder());
+        };
+    }, [order?.isSucessOrder]);
 
     const handleChangeCount = (type, limited) => {
         if (type === 'increase') {
             if (!limited) {
-                setNumProduct(numProduct + 1)
+                setNumProduct(numProduct + 1);
             }
         } else {
             if (!limited) {
-                setNumProduct(numProduct - 1)
+                setNumProduct(numProduct - 1);
             }
         }
-    }
+    };
 
     const formatDate = (dateString) => {
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         return new Date(dateString).toLocaleDateString(undefined, options);
     };
 
-    const { isLoading, data: productDetails } = useQuery(['product-details', idProduct], fetchGetDetailsProduct, { enabled: !!idProduct })
-    const { isLoading: isLoadingComment, data: commentDetails } = useQuery(['comment-details', idProduct], fetchGetDetailsComment, { enabled: !!idProduct })
+    const { isLoading, data: productDetails } = useQuery(['product-details', idProduct], fetchGetDetailsProduct, { enabled: !!idProduct });
+    const { isLoading: isLoadingComment, data: commentDetails } = useQuery(['comment-details', idProduct], fetchGetDetailsComment, { enabled: !!idProduct });
 
     const handleAddOrderProduct = () => {
         if (!user?.id) {
-            navigate('/login', { state: location?.pathname })
+            navigate('/login', { state: location?.pathname });
         } else {
-            const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id)
+            const orderRedux = order?.orderItems?.find((item) => item.product === productDetails?._id);
             if ((orderRedux?.amount + numProduct) <= orderRedux?.countInstock || (!orderRedux && productDetails?.countInStock > 0)) {
                 dispatch(addOrderProduct({
                     orderItem: {
@@ -131,13 +130,14 @@ const ProductDetailsComponent = ({ idProduct }) => {
                         form: productDetails?.form,
                         author: productDetails?.author
                     }
-                }))
+                }));
+                navigate('/order');
             } else {
-                setErrorLimitOrder(true)
+                setErrorLimitOrder(true);
             }
         }
-        navigate('/order')
-    }
+    };
+
     const discountedPrice = useMemo(() => {
         return productDetails ? productDetails.price * (1 - (productDetails.discount || 0) / 100) : 0;
     }, [productDetails]);
@@ -149,6 +149,11 @@ const ProductDetailsComponent = ({ idProduct }) => {
         }
         return stars;
     }
+
+    const averageRating = useMemo(() => {
+        if (!commentDetails || commentDetails.length === 0) return 0;
+        return Math.round((commentDetails.reduce((total, comment) => total + comment.star, 0) / commentDetails.length) * 100) / 100;
+    }, [commentDetails]);
 
     return (
         <Loading isLoading={isLoading}>
@@ -185,7 +190,6 @@ const ProductDetailsComponent = ({ idProduct }) => {
                     <Col span={14} style={{ paddingLeft: '10px' }}>
                         <WrapperStyleNameProduct>{productDetails?.name}</WrapperStyleNameProduct>
                         <div>
-                            {/* <Rate allowHalf defaultValue={productDetails?.rating} value={productDetails?.rating} /> */}
                             <WrapperStyleTextSell> Đã bán {productDetails?.selled}</WrapperStyleTextSell>
                         </div>
                         <div>
@@ -224,7 +228,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
                                 </button>
                             </WrapperQualityProduct>
                         </div>
-                        <div style={{ display: 'flex', aliggItems: 'center', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                             <div>
                                 <ButtonComponent
                                     size={40}
@@ -240,7 +244,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
                                     textbutton={'Mua ngay'}
                                     styleTextButton={{ color: '#fff', fontSize: '15px', fontWeight: '700' }}
                                 ></ButtonComponent>
-                                {errorLimitOrder && <div style={{ color: 'red' }}>San pham het hang</div>}
+                                {errorLimitOrder && <div style={{ color: 'red' }}>Sản phẩm hết hàng</div>}
                             </div>
                             <ButtonComponent
                                 size={40}
@@ -258,7 +262,7 @@ const ProductDetailsComponent = ({ idProduct }) => {
                             ></ButtonComponent>
                         </div>
                     </Col>
-                </Row >
+                </Row>
             ) : null}
             <WrapperDecription style={{ whiteSpace: 'pre-line' }}>
                 <div style={{ fontSize: "1.45em", fontWeight: "700" }}>Thông tin sản phẩm</div>
@@ -267,21 +271,20 @@ const ProductDetailsComponent = ({ idProduct }) => {
             <WrapperDecription style={{ whiteSpace: 'pre-line' }}>
                 <div style={{ fontSize: "1.45em", fontWeight: "700" }}>Đánh giá sản phẩm</div>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '1em' }}>
-         
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'baseline', fontSize: '4em', fontWeight: '600', lineHeight: '1.1em' }}>
-                            {Math.round((commentDetails?.reduce((total, comment) => total + comment.star, 0) / commentDetails?.length) * 100) / 100}
+                            {averageRating}
                             <div style={{ fontSize: '0.5em', marginLeft: '0.2em' }}>/5</div>
                         </div>
                     </div>
                     <div>
-                        {formatStars(Math.round((commentDetails?.reduce((total, comment) => total + comment.star, 0) / commentDetails?.length) * 100) / 100)}
+                        {formatStars(averageRating)}
                     </div>
-                    <div style={{ fontSize: '13px', fontWeight: '400', color: '#7A7E7F' }}>({commentDetails?.length} đánh giá)</div>
+                    <div style={{ fontSize: '13px', fontWeight: '400', color: '#7A7E7F' }}>({commentDetails?.length || 0} đánh giá)</div>
                     <div style={{ width: '100%' }}>
                         {[5, 4, 3, 2, 1].map(star => {
                             const starReviews = commentDetails?.filter(comment => comment.star === star).length || 0;
-                            const percentage = ((starReviews / commentDetails?.length) * 100).toFixed(2);
+                            const percentage = ((starReviews / (commentDetails?.length || 1)) * 100).toFixed(2);
                             return (
                                 <div key={star} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5em' }}>
                                     <div style={{ width: '50px', textAlign: 'right', marginRight: '10px' }}>{star} sao</div>
@@ -307,10 +310,8 @@ const ProductDetailsComponent = ({ idProduct }) => {
                     </div>
                 ))}
             </WrapperDecription>
-
-
         </Loading>
-    )
-}
+    );
+};
 
-export default ProductDetailsComponent
+export default ProductDetailsComponent;

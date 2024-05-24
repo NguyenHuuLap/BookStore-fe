@@ -1,4 +1,4 @@
-import { Badge, Button, Col, Popover } from 'antd'
+import { Badge, Col, Popover } from 'antd'
 import React from 'react'
 import { WrapperContentPopup, WrapperHeader, WrapperHeaderAccout, WrapperTextHeader, WrapperTextHeaderSmall } from './style'
 import {
@@ -37,6 +37,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
     await UserService.logoutUser()
     dispatch(resetUser())
     setLoading(false)
+    navigate('/')
   }
 
   useEffect(() => {
@@ -50,7 +51,6 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
     <div>
       <WrapperContentPopup onClick={() => handleClickNavigate('profile')}>Thông tin người dùng</WrapperContentPopup>
       {user?.isAdmin && (
-
         <WrapperContentPopup onClick={() => handleClickNavigate('admin')}>Quản lí hệ thống</WrapperContentPopup>
       )}
       <WrapperContentPopup onClick={() => handleClickNavigate(`my-order`)}>Đơn hàng của tôi</WrapperContentPopup>
@@ -132,7 +132,7 @@ const HeaderComponent = ({ isHiddenSearch = false, isHiddenCart = false }) => {
               )}
             </WrapperHeaderAccout>
           </Loading>
-          {user?.access_token && (
+          {user?.access_token && !user?.isAdmin && (
             <div onClick={() => navigate('/order')} style={{ cursor: 'pointer' }}>
               <Badge count={order?.orderItems?.length} size="small">
                 <ShoppingCartOutlined style={{ fontSize: '30px', color: '#2e2d2d' }} />

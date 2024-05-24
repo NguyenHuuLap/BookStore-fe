@@ -13,6 +13,7 @@ export const orderContant = {
   },
   status: {
     pending: 'Chưa xác nhận',
+    confirm: 'Đã xác nhận',
     shipping: 'Đang giao hàng',
     complete: 'Hoàn tất',
     cancel: 'Bị hủy'
