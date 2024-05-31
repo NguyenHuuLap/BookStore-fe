@@ -1,54 +1,51 @@
-import { Menu } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { Menu } from 'antd';
+import React, { useEffect, useState, useMemo } from 'react';
 import { getItem } from '../../utils';
-import { UserOutlined, AppstoreOutlined, ShoppingCartOutlined } from '@ant-design/icons'
+import { UserOutlined, AppstoreOutlined, ShoppingCartOutlined, CommentOutlined } from '@ant-design/icons';
 import HeaderComponent from '../../components/HeaderComponent/HeaderComponent';
 import AdminUser from '../../components/AdminUser/AdminUser';
 import AdminProduct from '../../components/AdminProduct/AdminProduct';
 import OrderAdmin from '../../components/OrderAdmin/OrderAmin';
 import AdminComment from '../../components/AdminComment/AdminComment';
-import * as OrderService from '../../services/OrderService'
-import * as ProductService from '../../services/ProductService'
-import * as UserService from '../../services/UserService'
-import * as CommentService from '../../services/CommentService'
-
+import * as OrderService from '../../services/OrderService';
+import * as ProductService from '../../services/ProductService';
+import * as UserService from '../../services/UserService';
+import * as CommentService from '../../services/CommentService';
 import CustomizedContent from './Components/CustomizedContent';
 import { useSelector } from 'react-redux';
 import { useQueries } from '@tanstack/react-query';
-import { useMemo } from 'react';
 import Loading from '../../components/LoadingComponent/Loading';
 
 const AdminPage = () => {
-  const user = useSelector((state) => state?.user)
+  const user = useSelector((state) => state?.user);
+  const [keySelected, setKeySelected] = useState('');
 
   const items = [
     getItem('Người dùng', 'users', <UserOutlined />),
     getItem('Sản phẩm', 'products', <AppstoreOutlined />),
     getItem('Đơn hàng', 'orders', <ShoppingCartOutlined />),
-    getItem('Đánh giá', 'comment', <ShoppingCartOutlined />),
-
+    getItem('Đánh giá', 'comment', <CommentOutlined />),
   ];
 
-  const [keySelected, setKeySelected] = useState('');
   const getAllOrder = async () => {
-    const res = await OrderService.getAllOrder(user?.access_token)
-    return { data: res?.data, key: 'orders' }
-  }
+    const res = await OrderService.getAllOrder(user?.access_token);
+    return { data: res?.data, key: 'orders' };
+  };
 
   const getAllProducts = async () => {
-    const res = await ProductService.getAllProduct()
-    return { data: res?.data, key: 'products' }
-  }
+    const res = await ProductService.getAllProduct();
+    return { data: res?.data, key: 'products' };
+  };
 
   const getAllUsers = async () => {
-    const res = await UserService.getAllUser(user?.access_token)
-    return { data: res?.data, key: 'users' }
-  }
+    const res = await UserService.getAllUser(user?.access_token);
+    return { data: res?.data, key: 'users' };
+  };
 
   const getAllComment = async () => {
-    const res = await CommentService.getAllComment()
-    return { data: res?.data, key: 'comment' }
-  }
+    const res = await CommentService.getAllComment();
+    return { data: res?.data, key: 'comment' };
+  };
 
   const queries = useQueries({
     queries: [
@@ -56,55 +53,51 @@ const AdminPage = () => {
       { queryKey: ['users'], queryFn: getAllUsers, staleTime: 1000 * 60 },
       { queryKey: ['orders'], queryFn: getAllOrder, staleTime: 1000 * 60 },
       { queryKey: ['comment'], queryFn: getAllComment, staleTime: 1000 * 60 },
-    ]
-  })
+    ],
+  });
+
+  // Add console log to inspect the queries array
+  console.log('queries:', queries);
+
   const memoCount = useMemo(() => {
-    const result = {}
-    try {
-      if (queries) {
-        queries.forEach((query) => {
-          result[query?.data?.key] = query?.data?.data?.length
-        })
+    const result = {};
+    queries.forEach((query) => {
+      console.log('query data:', query?.data); // Add console log to inspect each query's data
+      if (query?.data) {
+        result[query.data.key] = query.data.data?.length || 0;
       }
-      return result
-    } catch (error) {
-      return result
-    }
-  }, [queries])
+    });
+    return result;
+  }, [queries]);
+
   const COLORS = {
     users: ['#e66465', '#9198e5'],
     products: ['#a8c0ff', '#3f2b96'],
     orders: ['#11998e', '#38ef7d'],
-    comment: ['#11998e', '#38ef7d'],
+    comment: ['#ff5f6d', '#ffc371'],
   };
 
   const renderPage = (key) => {
     switch (key) {
       case 'users':
-        return (
-          <AdminUser />
-        )
+        return <AdminUser />;
       case 'products':
-        return (
-          <AdminProduct />
-        )
+        return <AdminProduct />;
       case 'orders':
-        return (
-          <OrderAdmin />
-        )
+        return <OrderAdmin />;
       case 'comment':
-        return (
-          <AdminComment />
-        )
+        return <AdminComment />;
       default:
-        return <></>
+        return <></>;
     }
-  }
+  };
 
-  const handleOnCLick = ({ key }) => {
-    setKeySelected(key)
-  }
-  console.log('memoCount', memoCount)
+  const handleOnClick = ({ key }) => {
+    setKeySelected(key);
+  };
+
+  const isLoading = queries.some((query) => query.isLoading);
+
   return (
     <>
       <HeaderComponent isHiddenSearch isHiddenCart />
@@ -114,22 +107,20 @@ const AdminPage = () => {
           style={{
             width: 256,
             boxShadow: '1px 1px 2px #ccc',
-            height: '100vh'
+            height: '100vh',
           }}
           items={items}
-          onClick={handleOnCLick}
+          onClick={handleOnClick}
         />
         <div style={{ flex: 1, padding: '15px 0 15px 15px' }}>
-          <Loading isLoading={memoCount && Object.keys(memoCount) && Object.keys(memoCount).length !== 3}>
-            {!keySelected && (
-              <CustomizedContent data={memoCount} colors={COLORS} setKeySelected={setKeySelected} />
-            )}
+          <Loading isLoading={isLoading}>
+            {!keySelected && <CustomizedContent data={memoCount} colors={COLORS} setKeySelected={setKeySelected} />}
           </Loading>
-          {renderPage(keySelected)}
+          {keySelected && renderPage(keySelected)}
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default AdminPage
+export default AdminPage;

@@ -1,25 +1,35 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Tabs, Button } from 'antd';
 import Loading from '../../components/LoadingComponent/Loading';
 import { useQuery } from '@tanstack/react-query';
 import * as OrderService from '../../services/OrderService';
 import { useSelector } from 'react-redux';
 import { convertPrice } from '../../utils';
-import { WrapperItemOrder, WrapperListOrder, WrapperHeaderItem, WrapperFooterItem, WrapperContainer, WrapperStatus } from './style';
-import ButtonComponent from '../../components/ButtonComponent/ButtonComponent';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { 
+  WrapperItemOrder, 
+  WrapperListOrder, 
+  WrapperHeaderItem, 
+  WrapperFooterItem, 
+  WrapperContainer, 
+  WrapperStatus 
+} from './style';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutationHooks } from '../../hooks/useMutationHook';
 import * as message from '../../components/Message/Message';
 import { orderContant } from '../../contant';
+
+const { TabPane } = Tabs;
 
 const MyOrderPage = () => {
   const location = useLocation();
   const { state } = location;
   const navigate = useNavigate();
-  
+  const [selectedTab, setSelectedTab] = useState('all');
+
   const fetchMyOrder = async () => {
     if (state?.id && state?.token) {
       const res = await OrderService.getOrderByUserId(state.id, state.token);
-      return res.data;
+      return Array.isArray(res.data) ? res.data : [];
     }
     return [];
   };
@@ -29,10 +39,11 @@ const MyOrderPage = () => {
   const queryOrder = useQuery({
     queryKey: ['orders'],
     queryFn: fetchMyOrder,
-    enabled: !!state?.id && !!state?.token
+    enabled: !!state?.id && !!state?.token,
+    initialData: [] // Ensure initial data is an empty array
   });
 
-  const { isLoading, data } = queryOrder;
+  const { isLoading, data: orders = [] } = queryOrder; // Ensure orders is an array
 
   const handleDetailsOrder = (id) => {
     navigate(`/details-order/${id}`, {
@@ -57,12 +68,10 @@ const MyOrderPage = () => {
     });
   };
 
-  const { isLoading: isLoadingCancel, isSuccess: isSuccessCancel, isError: isErrorCancel, data: dataCancel } = mutation;
-
   const mutationComplete = useMutationHooks(
     (data) => {
       const { id, token, orderItems, userId } = data;
-      return OrderService.cancelOrder(id, token, orderItems, userId);
+      return OrderService.completeOrder(id, token, orderItems, userId); // Assume this service exists
     }
   );
 
@@ -74,7 +83,32 @@ const MyOrderPage = () => {
     });
   };
 
+  const mutationUpdate = useMutationHooks(
+    (data) => {
+      const { id, orderData, token } = data;
+      return OrderService.updateOrder(id, orderData, token);
+    }
+  );
+
+  const handleUpdateOrder = (order) => {
+    mutationUpdate.mutate({ 
+      id: order._id, 
+      orderData: { status: 'complete' }, 
+      token: state?.token 
+    }, {
+      onSuccess: () => {
+        queryOrder.refetch();
+        message.success('Xác nhận đơn hàng thành công');
+      },
+      onError: () => {
+        message.error('Failed to update order');
+      }
+    });
+  };
+
+  const { isLoading: isLoadingCancel, isSuccess: isSuccessCancel, isError: isErrorCancel, data: dataCancel } = mutation;
   const { isLoading: isLoadingComplete, isSuccess: isSuccessComplete, isError: isErrorComplete, data: dataComplete } = mutationComplete;
+  const { isLoading: isLoadingUpdate, isSuccess: isSuccessUpdate, isError: isErrorUpdate, data: dataUpdate } = mutationUpdate;
 
   useEffect(() => {
     if (isSuccessCancel && dataCancel?.status === 'OK') {
@@ -86,8 +120,8 @@ const MyOrderPage = () => {
     }
   }, [isErrorCancel, isSuccessCancel, dataCancel]);
 
-  const renderProduct = (data) => {
-    return data?.map((order) => (
+  const renderProduct = (orderItems) => {
+    return orderItems?.map((order) => (
       <WrapperHeaderItem key={order?._id}>
         <img
           src={order?.image}
@@ -118,74 +152,152 @@ const MyOrderPage = () => {
     ));
   };
 
+  const filterOrders = (orders, status) => {
+    // Ensure orders is always an array
+    if (!Array.isArray(orders)) {
+      return [];
+    }
+  
+    if (status === 'all') return orders;
+    return orders.filter(order => order.status === status);
+  };
+
+  const renderOrders = (orders) => {
+    return orders.map((order) => (
+      <WrapperItemOrder key={order?._id}>
+        <WrapperStatus>
+          <span style={{ fontSize: '14px', fontWeight: 'bold' }}>Trạng thái</span>
+          <div>
+            <span style={{ color: 'rgb(255, 66, 78)' }}>Giao hàng: </span>
+            <span style={{ color: 'rgb(90, 32, 193)', fontWeight: 'bold' }}>
+              {`${orderContant.status[order.status]}`}
+            </span>
+          </div>
+          <div>
+            <span style={{ color: 'rgb(255, 66, 78)' }}>Thanh toán: </span>
+            <span style={{ color: 'rgb(90, 32, 193)', fontWeight: 'bold' }}>
+              {`${order.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}`}
+            </span>
+          </div>
+        </WrapperStatus>
+        {renderProduct(order?.orderItems)}
+        <WrapperFooterItem>
+          <div>
+            <span style={{ color: 'rgb(255, 66, 78)' }}>Tổng tiền: </span>
+            <span
+              style={{ fontSize: '13px', color: 'rgb(56, 56, 61)', fontWeight: 700 }}
+            >
+              {convertPrice(order?.totalPrice)}
+            </span>
+          </div>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            {order.status !== 'cancel' && order.status !== 'shipping' && order.status !== 'complete' && (
+              <Button
+                onClick={() => handleCancelOrder(order)}
+                style={{
+                  height: '36px',
+                  border: '1px solid #9255FD',
+                  borderRadius: '4px',
+                  color: '#9255FD',
+                  fontSize: '14px'
+                }}
+              >
+                Hủy đơn hàng
+              </Button>
+            )}
+            <Button
+              onClick={() => handleDetailsOrder(order?._id)}
+              style={{
+                height: '36px',
+                border: '1px solid #9255FD',
+                borderRadius: '4px',
+                color: '#9255FD',
+                fontSize: '14px'
+              }}
+            >
+              Xem chi tiết
+            </Button>
+            {order.status === 'shipping' && (
+              <Button
+                onClick={() => handleUpdateOrder(order)}
+                style={{
+                  height: '36px',
+                  border: '1px solid #9255FD',
+                  borderRadius: '4px',
+                  color: '#9255FD',
+                  fontSize: '14px'
+                }}
+              >
+                Xác nhận đơn hàng
+              </Button>
+            )}
+          </div>
+        </WrapperFooterItem>
+      </WrapperItemOrder>
+    ));
+  };
+
   return (
-    <Loading isLoading={isLoading || isLoadingCancel}>
+    <Loading isLoading={isLoading || isLoadingCancel || isLoadingComplete || isLoadingUpdate}>
       <WrapperContainer>
         <div style={{ height: '100%', width: '1270px', margin: '0 auto' }}>
           <h4>Đơn hàng của tôi</h4>
-          <WrapperListOrder>
-            {Array.isArray(data) && data.length > 0 ? (
-              data.map((order) => (
-                <WrapperItemOrder key={order?._id}>
-                  <WrapperStatus>
-                    <span style={{ fontSize: '14px', fontWeight: 'bold' }}>Trạng thái</span>
-                    <div>
-                      <span style={{ color: 'rgb(255, 66, 78)' }}>Giao hàng: </span>
-                      <span style={{ color: 'rgb(90, 32, 193)', fontWeight: 'bold' }}>
-                        {`${orderContant.status[order.status]}`}
-                      </span>
-                    </div>
-                    <div>
-                      <span style={{ color: 'rgb(255, 66, 78)' }}>Thanh toán: </span>
-                      <span style={{ color: 'rgb(90, 32, 193)', fontWeight: 'bold' }}>
-                        {`${order.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}`}
-                      </span>
-                    </div>
-                  </WrapperStatus>
-                  {renderProduct(order?.orderItems)}
-                  <WrapperFooterItem>
-                    <div>
-                      <span style={{ color: 'rgb(255, 66, 78)' }}>Tổng tiền: </span>
-                      <span
-                        style={{ fontSize: '13px', color: 'rgb(56, 56, 61)', fontWeight: 700 }}
-                      >
-                        {convertPrice(order?.totalPrice)}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      {order.status !== 'cancel' && (
-                        <ButtonComponent
-                          onClick={() => handleCancelOrder(order)}
-                          size={40}
-                          styleButton={{
-                            height: '36px',
-                            border: '1px solid #9255FD',
-                            borderRadius: '4px'
-                          }}
-                          textbutton={'Hủy đơn hàng'}
-                          styleTextButton={{ color: '#9255FD', fontSize: '14px' }}
-                          disabled={order.status === 'shipping' || order.status === 'complete'}
-                        />
-                      )}
-                      <ButtonComponent
-                        onClick={() => handleDetailsOrder(order?._id)}
-                        size={40}
-                        styleButton={{
-                          height: '36px',
-                          border: '1px solid #9255FD',
-                          borderRadius: '4px'
-                        }}
-                        textbutton={'Xem chi tiết'}
-                        styleTextButton={{ color: '#9255FD', fontSize: '14px' }}
-                      />
-                    </div>
-                  </WrapperFooterItem>
-                </WrapperItemOrder>
-              ))
-            ) : (
-              <div>No orders found</div>
-            )}
-          </WrapperListOrder>
+          <Tabs defaultActiveKey="all" onChange={setSelectedTab}>
+            <TabPane tab={`Tất cả (${filterOrders(orders, 'all').length})`} key="all">
+              <WrapperListOrder>
+                {orders.length > 0 ? (
+                  renderOrders(filterOrders(orders, 'all'))
+                ) : (
+                  <div>No orders found</div>
+                )}
+              </WrapperListOrder>
+            </TabPane>
+            <TabPane tab={`Chờ xác nhận (${filterOrders(orders, 'pending').length})`} key="pending">
+              <WrapperListOrder>
+                {orders.length > 0 ? (
+                  renderOrders(filterOrders(orders, 'pending'))
+                ) : (
+                  <div>No orders found</div>
+                )}
+              </WrapperListOrder>
+            </TabPane>
+            <TabPane tab={`Đã xác nhận (${filterOrders(orders, 'confirm').length})`} key="confirm">
+              <WrapperListOrder>
+                {orders.length > 0 ? (
+                  renderOrders(filterOrders(orders, 'confirm'))
+                ) : (
+                  <div>No orders found</div>
+                )}
+              </WrapperListOrder>
+            </TabPane>
+            <TabPane tab={`Đang giao (${filterOrders(orders, 'shipping').length})`} key="shipping">
+              <WrapperListOrder>
+                {orders.length > 0 ? (
+                  renderOrders(filterOrders(orders, 'shipping'))
+                ) : (
+                  <div>No orders found</div>
+                )}
+              </WrapperListOrder>
+            </TabPane>
+            <TabPane tab={`Đã giao (${filterOrders(orders, 'complete').length})`} key="complete">
+              <WrapperListOrder>
+                {orders.length > 0 ? (
+                  renderOrders(filterOrders(orders, 'complete'))
+                ) : (
+                  <div>No orders found</div>
+                )}
+              </WrapperListOrder>
+            </TabPane>
+            <TabPane tab={`Đã hủy (${filterOrders(orders, 'cancel').length})`} key="cancel">
+              <WrapperListOrder>
+                {orders.length > 0 ? (
+                  renderOrders(filterOrders(orders, 'cancel'))
+                ) : (
+                  <div>No orders found</div>
+                )}
+              </WrapperListOrder>
+            </TabPane>
+          </Tabs>
         </div>
       </WrapperContainer>
     </Loading>
