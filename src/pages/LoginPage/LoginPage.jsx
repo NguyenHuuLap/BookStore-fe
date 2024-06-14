@@ -44,8 +44,12 @@ const LoginPage = () => {
         }
       }
     } else if (isSuccess && data?.message === 'The password or user is incorrect') {
-      // Display error message
       message.error('Mật khẩu sai!');
+    }
+    else if (isSuccess && data?.message === 'The user is not defined') {
+      message.error('Tài khoản không tồn tại!');
+    } else if (isSuccess && data?.message === 'The account has been deleted') {
+      message.error('Tài khoản đã bị khóa!');
     }
   }, [isSuccess, isError]);
 

@@ -1,29 +1,26 @@
-import { Button, Form, Space } from 'antd'
-import React from 'react'
-import { WrapperHeader, WrapperUploadFile } from './style'
-import TableComponent from '../TableComponent/TableComponent'
-import InputComponent from '../InputComponent/InputComponent'
-import DrawerComponent from '../DrawerComponent/DrawerComponent'
-import Loading from '../LoadingComponent/Loading'
-import ModalComponent from '../ModalComponent/ModalComponent'
-import { getBase64 } from '../../utils'
-import { useEffect } from 'react'
-import * as message from '../../components/Message/Message'
-import { useState } from 'react'
-import { useSelector } from 'react-redux'
-import { useRef } from 'react'
-import { useMutationHooks } from '../../hooks/useMutationHook'
-import * as UserService from '../../services/UserService'
-import { useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query'
-import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons'
+import { Button, Form, Space, Tabs } from 'antd';
+import React, { useEffect, useState, useRef } from 'react';
+import { WrapperHeader, WrapperUploadFile } from './style';
+import TableComponent from '../TableComponent/TableComponent';
+import InputComponent from '../InputComponent/InputComponent';
+import DrawerComponent from '../DrawerComponent/DrawerComponent';
+import Loading from '../LoadingComponent/Loading';
+import ModalComponent from '../ModalComponent/ModalComponent';
+import { getBase64 } from '../../utils';
+import * as message from '../../components/Message/Message';
+import * as UserService from '../../services/UserService';
+import { useSelector } from 'react-redux';
+import { useMutationHooks } from '../../hooks/useMutationHook';
+import { useQuery } from '@tanstack/react-query';
+import { DeleteOutlined, EditOutlined, SearchOutlined, UndoOutlined } from '@ant-design/icons';
 import moment from 'moment';
 
 const AdminUser = () => {
-  const [rowSelected, setRowSelected] = useState('')
-  const [isOpenDrawer, setIsOpenDrawer] = useState(false)
-  const [isLoadingUpdate, setIsLoadingUpdate] = useState(false)
-  const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
-  const user = useSelector((state) => state?.user)
+  const [rowSelected, setRowSelected] = useState('');
+  const [isOpenDrawer, setIsOpenDrawer] = useState(false);
+  const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+  const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
+  const user = useSelector((state) => state?.user);
   const searchInput = useRef(null);
 
   const [stateUserDetails, setStateUserDetails] = useState({
@@ -33,60 +30,49 @@ const AdminUser = () => {
     isAdmin: false,
     avatar: '',
     address: ''
-  })
+  });
 
   const [form] = Form.useForm();
 
   const mutationUpdate = useMutationHooks(
     (data) => {
-      const { id,
-        token,
-        ...rests } = data
-      const res = UserService.updateUser(
-        id,
-        { ...rests }, token)
-      return res
+      const { id, token, ...rests } = data;
+      const res = UserService.updateUser(id, { ...rests }, token);
+      return res;
     },
-  )
+  );
 
   const mutationDeletedMany = useMutationHooks(
     (data) => {
-      const { token, ...ids
-      } = data
-      const res = UserService.deleteManyUser(
-        ids,
-        token)
-      return res
+      const { token, ...ids } = data;
+      const res = UserService.deleteManyUser(ids, token);
+      return res;
     },
-  )
+  );
 
   const handleDelteManyUsers = (ids) => {
     mutationDeletedMany.mutate({ ids: ids, token: user?.access_token }, {
       onSettled: () => {
-        queryUser.refetch()
+        queryUser.refetch();
       }
-    })
-  }
+    });
+  };
 
   const mutationDeleted = useMutationHooks(
     (data) => {
-      const { id,
-        token,
-      } = data
-      const res = UserService.deleteUser(
-        id,
-        token)
-      return res
+      const { id, token } = data;
+      const res = UserService.deleteUser(id, token);
+      return res;
     },
-  )
+  );
 
   const getAllUser = async () => {
-    const res = await UserService.getAllUser()
-    return res
-  }
+    const res = await UserService.getAllUser();
+    return res;
+  };
 
   const fetchGetDetailsUser = async (rowSelected) => {
-    const res = await UserService.getDetailsUser(rowSelected)
+    const res = await UserService.getDetailsUser(rowSelected);
     if (res?.data) {
       setStateUserDetails({
         name: res?.data?.name,
@@ -95,43 +81,52 @@ const AdminUser = () => {
         isAdmin: res?.data?.isAdmin,
         address: res?.data?.address,
         avatar: res.data?.avatar
-      })
+      });
     }
-    setIsLoadingUpdate(false)
-  }
+    setIsLoadingUpdate(false);
+  };
 
   useEffect(() => {
-    form.setFieldsValue(stateUserDetails)
-  }, [form, stateUserDetails])
+    form.setFieldsValue(stateUserDetails);
+  }, [form, stateUserDetails]);
 
   useEffect(() => {
     if (rowSelected && isOpenDrawer) {
-      setIsLoadingUpdate(true)
-      fetchGetDetailsUser(rowSelected)
+      setIsLoadingUpdate(true);
+      fetchGetDetailsUser(rowSelected);
     }
-  }, [rowSelected, isOpenDrawer])
+  }, [rowSelected, isOpenDrawer]);
 
   const handleDetailsUser = () => {
-    setIsOpenDrawer(true)
-  }
+    setIsOpenDrawer(true);
+  };
 
-  const { data: dataUpdated, isLoading: isLoadingUpdated, isSuccess: isSuccessUpdated, isError: isErrorUpdated } = mutationUpdate
-  const { data: dataDeleted, isLoading: isLoadingDeleted, isSuccess: isSuccessDelected, isError: isErrorDeleted } = mutationDeleted
-  const { data: dataDeletedMany, isLoading: isLoadingDeletedMany, isSuccess: isSuccessDelectedMany, isError: isErrorDeletedMany } = mutationDeletedMany
+  const { data: dataUpdated, isLoading: isLoadingUpdated, isSuccess: isSuccessUpdated, isError: isErrorUpdated } = mutationUpdate;
+  const { data: dataDeleted, isLoading: isLoadingDeleted, isSuccess: isSuccessDelected, isError: isErrorDeleted } = mutationDeleted;
+  const { data: dataDeletedMany, isLoading: isLoadingDeletedMany, isSuccess: isSuccessDelectedMany, isError: isErrorDeletedMany } = mutationDeletedMany;
 
-  // const queryClient = useQueryClient()
-  // const users = queryClient.getQueryData(['users'])
-  // const isFetchingUser = useIsFetching(['users'])
-  const queryUser = useQuery({ queryKey: ['user'], queryFn: getAllUser })
-  const { isLoading: isLoadingUser, data: users } = queryUser
-  const renderAction = () => {
-    return (
-      <div>
-        <DeleteOutlined style={{ color: 'red', fontSize: '30px', cursor: 'pointer' }} onClick={() => setIsModalOpenDelete(true)} />
-        <EditOutlined style={{ color: 'orange', fontSize: '30px', cursor: 'pointer' }} onClick={handleDetailsUser} />
-      </div>
-    )
-  }
+  const queryUser = useQuery({ queryKey: ['user'], queryFn: getAllUser });
+  const { isLoading: isLoadingUser, data: users } = queryUser;
+
+  const renderAction = (isDelete) => (
+    <div>
+      {isDelete ? (
+        <UndoOutlined
+          style={{ color: 'green', fontSize: '30px', cursor: 'pointer' }}
+          onClick={() => setIsModalOpenDelete(true)}
+        />
+      ) : (
+        <DeleteOutlined
+          style={{ color: 'red', fontSize: '30px', cursor: 'pointer' }}
+          onClick={() => setIsModalOpenDelete(true)}
+        />
+      )}
+      <EditOutlined
+        style={{ color: 'orange', fontSize: '30px', cursor: 'pointer' }}
+        onClick={handleDetailsUser}
+      />
+    </div>
+  );
 
   const formatDate = (dateString) => {
     return moment(dateString).format('YYYY-MM-DD');
@@ -139,12 +134,10 @@ const AdminUser = () => {
 
   const handleSearch = (selectedKeys, confirm, dataIndex) => {
     confirm();
-    // setSearchText(selectedKeys[0]);
-    // setSearchedColumn(dataIndex);
   };
+
   const handleReset = (clearFilters) => {
     clearFilters();
-    // setSearchText('');
   };
 
   const getColumnSearchProps = (dataIndex) => ({
@@ -204,20 +197,6 @@ const AdminUser = () => {
         setTimeout(() => searchInput.current?.select(), 100);
       }
     },
-    // render: (text) =>
-    //   searchedColumn === dataIndex ? (
-    //     // <Highlighter
-    //     //   highlightStyle={{
-    //     //     backgroundColor: '#ffc069',
-    //     //     padding: 0,
-    //     //   }}
-    //     //   searchWords={[searchText]}
-    //     //   autoEscape
-    //     //   textToHighlight={text ? text.toString() : ''}
-    //     // />
-    //   ) : (
-    //     text
-    //   ),
   });
 
   const columns = [
@@ -263,42 +242,46 @@ const AdminUser = () => {
       title: 'Create At',
       dataIndex: 'createdAt',
       sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-      render: (createdAt) => formatDate(createdAt), // Format date for display
+      render: (createdAt) => formatDate(createdAt),
       ...getColumnSearchProps('createdAt')
     },
     {
       title: 'Update At',
       dataIndex: 'updatedAt',
       sorter: (a, b) => new Date(a.updatedAt) - new Date(b.updatedAt),
-      render: (updatedAt) => formatDate(updatedAt), // Format date for display
+      render: (updatedAt) => formatDate(updatedAt),
       ...getColumnSearchProps('updatedAt')
     },
     {
       title: 'Action',
-      dataIndex: 'action',
-      render: renderAction
+      dataIndex: 'isDelete',
+      render: (isDelete) => renderAction(isDelete),
     },
   ];
-  const dataTable = users?.data?.length > 0 && users?.data?.map((user) => {
-    return { ...user, key: user._id, isAdmin: user.isAdmin ? 'TRUE' : 'FALSE' }
-  })
+
+  const activeUsers = users?.data?.filter(user => !user.isDelete);
+  const lockedUsers = users?.data?.filter(user => user.isDelete);
+
+  const dataTable = (data) => data?.map((user) => ({
+    ...user, key: user._id, isAdmin: user.isAdmin ? 'TRUE' : 'FALSE'
+  }));
 
   useEffect(() => {
     if (isSuccessDelected && dataDeleted?.status === 'OK') {
-      message.success()
-      handleCancelDelete()
+      message.success('User status updated successfully');
+      handleCancelDelete();
     } else if (isErrorDeleted) {
-      message.error()
+      message.error('Error updating user status');
     }
-  }, [isSuccessDelected])
+  }, [isSuccessDelected, isErrorDeleted]);
 
   useEffect(() => {
     if (isSuccessDelectedMany && dataDeletedMany?.status === 'OK') {
-      message.success()
+      message.success('Users statuses updated successfully');
     } else if (isErrorDeletedMany) {
-      message.error()
+      message.error('Error updating users statuses');
     }
-  }, [isSuccessDelectedMany])
+  }, [isSuccessDelectedMany, isErrorDeletedMany]);
 
   const handleCloseDrawer = () => {
     setIsOpenDrawer(false);
@@ -307,71 +290,102 @@ const AdminUser = () => {
       email: '',
       phone: '',
       isAdmin: false,
-    })
-    form.resetFields()
+    });
+    form.resetFields();
   };
 
   useEffect(() => {
     if (isSuccessUpdated && dataUpdated?.status === 'OK') {
-      message.success()
-      handleCloseDrawer()
+      message.success('User updated successfully');
+      handleCloseDrawer();
     } else if (isErrorUpdated) {
-      message.error()
+      message.error('Error updating user');
     }
-  }, [isSuccessUpdated])
+  }, [isSuccessUpdated, isErrorUpdated]);
 
   const handleCancelDelete = () => {
-    setIsModalOpenDelete(false)
-  }
+    setIsModalOpenDelete(false);
+  };
 
   const handleDeleteUser = () => {
     mutationDeleted.mutate({ id: rowSelected, token: user?.access_token }, {
       onSettled: () => {
-        queryUser.refetch()
+        queryUser.refetch();
       }
-    })
-  }
+    });
+  };
 
   const handleOnchangeDetails = (e) => {
     setStateUserDetails({
       ...stateUserDetails,
       [e.target.name]: e.target.value
-    })
-  }
+    });
+  };
 
   const handleOnchangeAvatarDetails = async ({ fileList }) => {
-    const file = fileList[0]
+    const file = fileList[0];
     if (!file.url && !file.preview) {
       file.preview = await getBase64(file.originFileObj);
     }
     setStateUserDetails({
       ...stateUserDetails,
       avatar: file.preview
-    })
-  }
+    });
+  };
+
   const onUpdateUser = () => {
     mutationUpdate.mutate({ id: rowSelected, token: user?.access_token, ...stateUserDetails }, {
       onSettled: () => {
-        queryUser.refetch()
+        queryUser.refetch();
       }
-    })
-  }
+    });
+  };
+
+  const tabItems = [
+    {
+      key: '1',
+      label: 'Tài khoản hoạt động',
+      children: (
+        <TableComponent
+          handleDelteMany={handleDelteManyUsers}
+          columns={columns}
+          isLoading={isLoadingUser}
+          data={dataTable(activeUsers)}
+          onRow={(record) => ({
+            onClick: () => {
+              setRowSelected(record._id);
+            },
+          })}
+        />
+      ),
+    },
+    {
+      key: '2',
+      label: 'Tài khoản bị khóa',
+      children: (
+        <TableComponent
+          handleDelteMany={handleDelteManyUsers}
+          columns={columns}
+          isLoading={isLoadingUser}
+          data={dataTable(lockedUsers)}
+          onRow={(record) => ({
+            onClick: () => {
+              setRowSelected(record._id);
+            },
+          })}
+        />
+      ),
+    },
+  ];
 
   return (
     <div>
       <WrapperHeader>Quản lý người dùng</WrapperHeader>
       <div style={{ marginTop: '20px' }}>
-        <TableComponent handleDelteMany={handleDelteManyUsers} columns={columns} isLoading={isLoadingUser} data={dataTable} onRow={(record, rowIndex) => {
-          return {
-            onClick: event => {
-              setRowSelected(record._id)
-            }
-          };
-        }} />
+        <Tabs defaultActiveKey="1" items={tabItems} />
       </div>
-      <DrawerComponent title='Chi tiết người dùng' isOpen={isOpenDrawer} onClose={() => setIsOpenDrawer(false)} width="90%">
+      <DrawerComponent title='Chi tiết người dùng' isOpen={isOpenDrawer} onClose={handleCloseDrawer} width="90%">
         <Loading isLoading={isLoadingUpdate || isLoadingUpdated}>
-
           <Form
             name="basic"
             labelCol={{ span: 2 }}
@@ -417,7 +431,7 @@ const AdminUser = () => {
               rules={[{ required: true, message: 'Please input your image!' }]}
             >
               <WrapperUploadFile onChange={handleOnchangeAvatarDetails} maxCount={1}>
-                <Button >Select File</Button>
+                <Button>Select File</Button>
                 {stateUserDetails?.avatar && (
                   <img src={stateUserDetails?.avatar} style={{
                     height: '60px',
@@ -437,13 +451,13 @@ const AdminUser = () => {
           </Form>
         </Loading>
       </DrawerComponent>
-      <ModalComponent title="Xóa người dùng" open={isModalOpenDelete} onCancel={handleCancelDelete} onOk={handleDeleteUser}>
+      <ModalComponent title="Thay đổi trạng thái người dùng" open={isModalOpenDelete} onCancel={handleCancelDelete} onOk={handleDeleteUser}>
         <Loading isLoading={isLoadingDeleted}>
-          <div>Bạn có chắc xóa tài khoản này không?</div>
+          <div>Bạn có chắc muốn thay đổi trạng thái của tài khoản này không?</div>
         </Loading>
       </ModalComponent>
     </div>
-  )
-}
+  );
+};
 
-export default AdminUser
+export default AdminUser;

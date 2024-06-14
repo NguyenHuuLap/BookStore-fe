@@ -237,16 +237,7 @@ const OrderAdmin = () => {
     <div>
       <WrapperHeader>Quản lý đơn hàng</WrapperHeader>
       
-      <Tabs defaultActiveKey="all" onChange={(key) => setActiveTab(key)}>
-        <TabPane tab={`Tất cả (${countOrdersByStatus('all')})`} key="all">
-          <TableComponent columns={columns} isLoading={isLoadingOrders} data={dataTable} onRow={(record, rowIndex) => {
-            return {
-              onClick: () => {
-                // Set the row as selected
-              },
-            };
-          }} />
-        </TabPane>
+      <Tabs defaultActiveKey="pending" onChange={(key) => setActiveTab(key)}>
         <TabPane tab={`Chưa xác nhận (${countOrdersByStatus('pending')})`} key="pending">
           <TableComponent columns={columns} isLoading={isLoadingOrders} data={dataTable} onRow={(record, rowIndex) => {
             return {
@@ -284,6 +275,15 @@ const OrderAdmin = () => {
           }} />
         </TabPane>
         <TabPane tab={`Đã hủy (${countOrdersByStatus('cancel')})`} key="cancel">
+          <TableComponent columns={columns} isLoading={isLoadingOrders} data={dataTable} onRow={(record, rowIndex) => {
+            return {
+              onClick: () => {
+                // Set the row as selected
+              },
+            };
+          }} />
+        </TabPane>
+        <TabPane tab={`Tất cả (${countOrdersByStatus('all')})`} key="all">
           <TableComponent columns={columns} isLoading={isLoadingOrders} data={dataTable} onRow={(record, rowIndex) => {
             return {
               onClick: () => {

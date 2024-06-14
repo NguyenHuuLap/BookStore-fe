@@ -1,9 +1,9 @@
-import { Button, Form, Space } from 'antd';
+import { Button, Form, Space, Tabs } from 'antd';
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
-import { WrapperHeader, WrapperUploadFile } from './style';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { DeleteOutlined, EditOutlined, SearchOutlined, UndoOutlined } from '@ant-design/icons';
+import { WrapperHeader } from './style';
 import TableComponent from '../TableComponent/TableComponent';
 import InputComponent from '../InputComponent/InputComponent';
 import DrawerComponent from '../DrawerComponent/DrawerComponent';
@@ -32,7 +32,6 @@ const AdminComment = () => {
 
   const mutationUpdate = useMutation((data) => {
     const { id, token, ...rests } = data;
-    console.log("comment", data)
     return CommentService.updateComment(id, { ...rests }, token);
   });
 
@@ -46,7 +45,7 @@ const AdminComment = () => {
       { ids, token: user?.access_token },
       {
         onSettled: () => {
-          queryUser.refetch();
+          queryComment.refetch();
         },
       }
     );
@@ -57,7 +56,7 @@ const AdminComment = () => {
     return CommentService.deleteComment(id, token);
   });
 
-  const getAllUser = async () => {
+  const getAllComments = async () => {
     return await CommentService.getAllComment();
   };
 
@@ -89,15 +88,22 @@ const AdminComment = () => {
     setIsOpenDrawer(true);
   };
 
-  const queryUser = useQuery({ queryKey: ['comment'], queryFn: getAllUser });
-  const { isLoading: isLoadingComment, data: comment } = queryUser;
+  const queryComment = useQuery({ queryKey: ['comments'], queryFn: getAllComments });
+  const { isLoading: isLoadingComment, data: comments } = queryComment;
 
-  const renderAction = () => (
+  const renderAction = (isDelete) => (
     <div>
-      <DeleteOutlined
-        style={{ color: 'red', fontSize: '30px', cursor: 'pointer' }}
-        onClick={() => setIsModalOpenDelete(true)}
-      />
+      {isDelete ? (
+        <UndoOutlined
+          style={{ color: 'green', fontSize: '30px', cursor: 'pointer' }}
+          onClick={() => setIsModalOpenDelete(true)}
+        />
+      ) : (
+        <DeleteOutlined
+          style={{ color: 'red', fontSize: '30px', cursor: 'pointer' }}
+          onClick={() => setIsModalOpenDelete(true)}
+        />
+      )}
       <EditOutlined
         style={{ color: 'orange', fontSize: '30px', cursor: 'pointer' }}
         onClick={handleDetailsComment}
@@ -201,32 +207,35 @@ const AdminComment = () => {
     },
     {
       title: 'Action',
-      dataIndex: 'action',
-      render: renderAction,
+      dataIndex: 'isDelete',
+      render: (isDelete) => renderAction(isDelete),
     },
   ];
 
-  const dataTable = comment?.data?.length > 0 && comment.data.map((comment) => ({
+  const activeComments = comments?.data?.filter(comment => !comment.isDelete);
+  const hiddenComments = comments?.data?.filter(comment => comment.isDelete);
+
+  const dataTable = (data) => data?.map((comment) => ({
     ...comment,
     key: comment._id,
   }));
 
   useEffect(() => {
     if (mutationDeleted.isSuccess && mutationDeleted.data?.status === 'OK') {
-      message.success();
+      message.success('Comment status updated successfully');
       handleCancelDelete();
     } else if (mutationDeleted.isError) {
-      message.error();
+      message.error('Error updating comment status');
     }
-  }, [mutationDeleted.isSuccess]);
+  }, [mutationDeleted.isSuccess, mutationDeleted.isError]);
 
   useEffect(() => {
     if (mutationDeletedMany.isSuccess && mutationDeletedMany.data?.status === 'OK') {
-      message.success();
+      message.success('Comments statuses updated successfully');
     } else if (mutationDeletedMany.isError) {
-      message.error();
+      message.error('Error updating comments statuses');
     }
-  }, [mutationDeletedMany.isSuccess]);
+  }, [mutationDeletedMany.isSuccess, mutationDeletedMany.isError]);
 
   const handleCloseDrawer = () => {
     setIsOpenDrawer(false);
@@ -241,12 +250,12 @@ const AdminComment = () => {
 
   useEffect(() => {
     if (mutationUpdate.isSuccess && mutationUpdate.data?.status === 'OK') {
-      message.success();
+      message.success('Comment updated successfully');
       handleCloseDrawer();
     } else if (mutationUpdate.isError) {
-      message.error();
+      message.error('Error updating comment');
     }
-  }, [mutationUpdate.isSuccess]);
+  }, [mutationUpdate.isSuccess, mutationUpdate.isError]);
 
   const handleCancelDelete = () => {
     setIsModalOpenDelete(false);
@@ -257,7 +266,7 @@ const AdminComment = () => {
       { id: rowSelected, token: user?.access_token },
       {
         onSettled: () => {
-          queryUser.refetch();
+          queryComment.refetch();
         },
       }
     );
@@ -271,63 +280,90 @@ const AdminComment = () => {
     }));
   };
 
-  const onUpdateUser = () => {
+  const onUpdateComment = () => {
     mutationUpdate.mutate(
       { id: rowSelected, token: user?.access_token, ...stateCommentDetails },
       {
         onSettled: () => {
-          queryUser.refetch();
+          queryComment.refetch();
         },
       }
     );
   };
 
-  return (
-    <div>
-      <WrapperHeader>Quản lý đánh giá</WrapperHeader>
-      <div style={{ marginTop: '20px' }}>
+  const tabItems = [
+    {
+      key: '1',
+      label: 'Hiển thị',
+      children: (
         <TableComponent
           handleDelteMany={handleDelteManyComment}
           columns={columns}
           isLoading={isLoadingComment}
-          data={dataTable}
+          data={dataTable(activeComments)}
           onRow={(record) => ({
             onClick: () => {
               setRowSelected(record._id);
             },
           })}
         />
+      ),
+    },
+    {
+      key: '2',
+      label: 'Bị ẩn',
+      children: (
+        <TableComponent
+          handleDelteMany={handleDelteManyComment}
+          columns={columns}
+          isLoading={isLoadingComment}
+          data={dataTable(hiddenComments)}
+          onRow={(record) => ({
+            onClick: () => {
+              setRowSelected(record._id);
+            },
+          })}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      <WrapperHeader>Quản lý đánh giá</WrapperHeader>
+      <div style={{ marginTop: '20px' }}>
+        <Tabs defaultActiveKey="1" items={tabItems} />
       </div>
-      <DrawerComponent title='Chi tiết đánh giá' isOpen={isOpenDrawer} onClose={handleCloseDrawer} width="90%">
+      <DrawerComponent title="Chi tiết đánh giá" isOpen={isOpenDrawer} onClose={handleCloseDrawer} width="90%">
         <Loading isLoading={isLoadingUpdate || mutationUpdate.isLoading}>
           <Form
             name="basic"
             labelCol={{ span: 2 }}
             wrapperCol={{ span: 22 }}
-            onFinish={onUpdateUser}
+            onFinish={onUpdateComment}
             autoComplete="on"
             form={form}
           >
             <Form.Item
               label="User Name"
               name="user"
-              rules={[{ required: true, message: 'Please input your name!' }]}
+              rules={[{ required: true, message: 'Please input user name!' }]}
             >
-              <InputComponent value={stateCommentDetails.nameUser} onChange={handleOnchangeDetails} name="user" />
+              <InputComponent value={stateCommentDetails.user} disabled />
             </Form.Item>
 
             <Form.Item
               label="Product Name"
               name="product"
-              rules={[{ required: true, message: 'Please input your product name!' }]}
+              rules={[{ required: true, message: 'Please input product name!' }]}
             >
-              <InputComponent value={stateCommentDetails.nameProduct} onChange={handleOnchangeDetails} name="product" />
+              <InputComponent value={stateCommentDetails.product} disabled />
             </Form.Item>
 
             <Form.Item
               label="Comment"
               name="comment"
-              rules={[{ required: true, message: 'Please input your comment!' }]}
+              rules={[{ required: true, message: 'Please input comment!' }]}
             >
               <InputComponent value={stateCommentDetails.comment} onChange={handleOnchangeDetails} name="comment" />
             </Form.Item>
@@ -335,7 +371,7 @@ const AdminComment = () => {
             <Form.Item
               label="Star"
               name="star"
-              rules={[{ required: true, message: 'Please input your star!' }]}
+              rules={[{ required: true, message: 'Please input star!' }]}
             >
               <InputComponent value={stateCommentDetails.star} onChange={handleOnchangeDetails} name="star" />
             </Form.Item>
@@ -347,9 +383,14 @@ const AdminComment = () => {
           </Form>
         </Loading>
       </DrawerComponent>
-      <ModalComponent title="Xóa đánh giá" open={isModalOpenDelete} onCancel={handleCancelDelete} onOk={handleDeleteComment}>
+      <ModalComponent
+        title="Xóa đánh giá"
+        open={isModalOpenDelete}
+        onCancel={handleCancelDelete}
+        onOk={handleDeleteComment}
+      >
         <Loading isLoading={mutationDeleted.isLoading}>
-          <div>Bạn có chắc xóa đánh giá này không?</div>
+          <div>Bạn có chắc muốn thay đổi trạng thái của đánh giá này không?</div>
         </Loading>
       </ModalComponent>
     </div>
