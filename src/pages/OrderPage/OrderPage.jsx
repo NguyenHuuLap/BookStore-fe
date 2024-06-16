@@ -1,82 +1,85 @@
-import { Checkbox, Form } from 'antd'
-import React, { useEffect, useState } from 'react'
+import { Checkbox, Form } from 'antd';
+import React, { useEffect, useState, useMemo } from 'react';
 import { CustomCheckbox, WrapperCountOrder, WrapperInfo, WrapperItemOrder, WrapperLeft, WrapperInputNumber, WrapperListOrder, WrapperRight, WrapperStyleHeader, WrapperStyleHeaderDilivery, WrapperTotal } from './style';
-import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
+import { DeleteOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import ButtonComponent from '../../components/ButtonComponent/ButtonComponent';
 import { useDispatch, useSelector } from 'react-redux';
 import { decreaseAmount, increaseAmount, removeAllOrderProduct, removeOrderProduct, selectedOrder } from '../../redux/slides/orderSlide';
 import { convertPrice } from '../../utils';
-import { useMemo } from 'react';
 import ModalComponent from '../../components/ModalComponent/ModalComponent';
 import InputComponent from '../../components/InputComponent/InputComponent';
 import { useMutationHooks } from '../../hooks/useMutationHook';
-import * as  UserService from '../../services/UserService'
+import * as UserService from '../../services/UserService';
+import * as DiscountService from '../../services/DiscountService';
 import Loading from '../../components/LoadingComponent/Loading';
-import * as message from '../../components/Message/Message'
+import * as message from '../../components/Message/Message';
 import { updateUser } from '../../redux/slides/userSlide';
 import { useNavigate } from 'react-router-dom';
 import StepComponent from '../../components/StepComponent/StepComponent';
 
 const OrderPage = () => {
-  const order = useSelector((state) => state.order)
-  const user = useSelector((state) => state.user)
+  const order = useSelector((state) => state.order);
+  const user = useSelector((state) => state.user);
 
-  const [listChecked, setListChecked] = useState([])
-  const [isOpenModalUpdateInfo, setIsOpenModalUpdateInfo] = useState(false)
+  const [listChecked, setListChecked] = useState([]);
+  const [isOpenModalUpdateInfo, setIsOpenModalUpdateInfo] = useState(false);
   const [stateUserDetails, setStateUserDetails] = useState({
     name: '',
     phone: '',
     address: '',
     city: ''
-  })
-  const navigate = useNavigate()
+  });
+  const [discountCode, setDiscountCode] = useState('');
+  const [discount, setDiscount] = useState(0);
+  const navigate = useNavigate();
   const [form] = Form.useForm();
 
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+
   const onChange = (e) => {
     if (listChecked.includes(e.target.value)) {
-      const newListChecked = listChecked.filter((item) => item !== e.target.value)
-      setListChecked(newListChecked)
+      const newListChecked = listChecked.filter((item) => item !== e.target.value);
+      setListChecked(newListChecked);
     } else {
-      setListChecked([...listChecked, e.target.value])
+      setListChecked([...listChecked, e.target.value]);
     }
   };
 
   const handleChangeCount = (type, idProduct, limited) => {
     if (type === 'increase') {
       if (!limited) {
-        dispatch(increaseAmount({ idProduct }))
+        dispatch(increaseAmount({ idProduct }));
       }
     } else {
       if (!limited) {
-        dispatch(decreaseAmount({ idProduct }))
+        dispatch(decreaseAmount({ idProduct }));
       }
     }
-  }
+  };
 
   const handleDeleteOrder = (idProduct) => {
-    dispatch(removeOrderProduct({ idProduct }))
-  }
+    dispatch(removeOrderProduct({ idProduct }));
+  };
 
   const handleOnchangeCheckAll = (e) => {
     if (e.target.checked) {
-      const newListChecked = []
+      const newListChecked = [];
       order?.orderItems?.forEach((item) => {
-        newListChecked.push(item?.product)
-      })
-      setListChecked(newListChecked)
+        newListChecked.push(item?.product);
+      });
+      setListChecked(newListChecked);
     } else {
-      setListChecked([])
+      setListChecked([]);
     }
-  }
+  };
 
   useEffect(() => {
-    dispatch(selectedOrder({ listChecked }))
-  }, [listChecked])
+    dispatch(selectedOrder({ listChecked }));
+  }, [listChecked]);
 
   useEffect(() => {
-    form.setFieldsValue(stateUserDetails)
-  }, [form, stateUserDetails])
+    form.setFieldsValue(stateUserDetails);
+  }, [form, stateUserDetails]);
 
   useEffect(() => {
     if (isOpenModalUpdateInfo) {
@@ -85,79 +88,68 @@ const OrderPage = () => {
         name: user?.name,
         address: user?.address,
         phone: user?.phone
-      })
+      });
     }
-  }, [isOpenModalUpdateInfo])
+  }, [isOpenModalUpdateInfo]);
 
   const handleChangeAddress = () => {
-    setIsOpenModalUpdateInfo(true)
-  }
+    setIsOpenModalUpdateInfo(true);
+  };
 
   const priceMemo = useMemo(() => {
     const result = order?.orderItemsSlected?.reduce((total, cur) => {
       const priceAfterDiscount = cur.price * (1 - (cur.discount || 0) / 100); // Tính giá sau khi giảm giá
       return total + (priceAfterDiscount * cur.amount); // Tính tổng tiền sau giảm giá cho sản phẩm hiện tại
-    }, 0)
+    }, 0);
     if (Number(result)) {
-      return result
+      return result;
     }
-    return 0
-  }, [order])
-
-  const priceDiscountMemo = useMemo(() => {
-    // const result = order?.orderItemsSlected?.reduce((total, cur) => {
-    //   const priceAfterDiscount = cur.price * (1 - (cur.discount || 0) / 100); // Tính giá sau khi giảm giá
-    //   return total + (priceAfterDiscount * cur.amount); // Tính tổng tiền sau giảm giá cho sản phẩm hiện tại
-    // },0)
-    // if(Number(result)){
-    //   return result
-    // }
-    return 0
-  }, [order])
+    return 0;
+  }, [order]);
 
   const diliveryPriceMemo = useMemo(() => {
     if (priceMemo >= 20000 && priceMemo < 500000) {
-      return 10000
+      return 10000;
     } else if (priceMemo >= 500000 || order?.orderItemsSlected?.length === 0) {
-      return 0
+      return 0;
     } else {
-      return 20000
+      return 20000;
     }
-  }, [priceMemo])
+  }, [priceMemo]);
 
   const totalPriceMemo = useMemo(() => {
-    return Number(priceMemo) + Number(diliveryPriceMemo)
-  }, [priceMemo, priceDiscountMemo, diliveryPriceMemo])
+    return Number(priceMemo) + Number(diliveryPriceMemo) - Number(discount);
+  }, [priceMemo, diliveryPriceMemo, discount]);
 
   const handleRemoveAllOrder = () => {
     if (listChecked?.length > 1) {
-      dispatch(removeAllOrderProduct({ listChecked }))
+      dispatch(removeAllOrderProduct({ listChecked }));
     }
-  }
+  };
 
   const handleAddCard = () => {
     if (!order?.orderItemsSlected?.length) {
-      message.error('Vui lòng chọn sản phẩm')
+      message.error('Vui lòng chọn sản phẩm');
     } else if (!user?.phone || !user.address || !user.name || !user.city) {
-      setIsOpenModalUpdateInfo(true)
+      setIsOpenModalUpdateInfo(true);
     } else {
-      navigate('/payment')
+      navigate('/payment', {
+        state: {
+          discount,
+        }
+      });
     }
-  }
+  };
 
   const mutationUpdate = useMutationHooks(
     (data) => {
-      const { id,
-        token,
-        ...rests } = data
-      const res = UserService.updateUser(
-        id,
-        { ...rests }, token)
-      return res
-    },
-  )
+      const { id, token, ...rests } = data;
+      const res = UserService.updateUser(id, { ...rests }, token);
+      return res;
+    }
+  );
 
-  const { isLoading, data } = mutationUpdate
+  const { isLoading, data } = mutationUpdate;
 
   const handleCancleUpdate = () => {
     setStateUserDetails({
@@ -165,28 +157,48 @@ const OrderPage = () => {
       email: '',
       phone: '',
       isAdmin: false,
-    })
-    form.resetFields()
-    setIsOpenModalUpdateInfo(false)
-  }
+    });
+    form.resetFields();
+    setIsOpenModalUpdateInfo(false);
+  };
+
   const handleUpdateInforUser = () => {
-    const { name, address, city, phone } = stateUserDetails
+    const { name, address, city, phone } = stateUserDetails;
     if (name && address && city && phone) {
       mutationUpdate.mutate({ id: user?.id, token: user?.access_token, ...stateUserDetails }, {
         onSuccess: () => {
-          dispatch(updateUser({ name, address, city, phone }))
-          setIsOpenModalUpdateInfo(false)
+          dispatch(updateUser({ name, address, city, phone }));
+          setIsOpenModalUpdateInfo(false);
         }
-      })
+      });
     }
-  }
+  };
 
   const handleOnchangeDetails = (e) => {
     setStateUserDetails({
       ...stateUserDetails,
       [e.target.name]: e.target.value
-    })
-  }
+    });
+  };
+
+  const handleApplyDiscount = async () => {
+    try {
+      const res = await DiscountService.getDiscountByCode(discountCode);
+      if (res.status === 'OK') {
+        const { percentage } = res.data;
+        const discountAmount = priceMemo * (percentage / 100);
+        setDiscount(discountAmount);
+        message.success('Discount applied successfully');
+      } else {
+        message.error('Invalid discount code');
+        setDiscount(0);
+      }
+    } catch (error) {
+      message.error('Error applying discount');
+      setDiscount(0);
+    }
+  };
+
   const itemsDelivery = [
     {
       title: '20.000 VND',
@@ -200,7 +212,8 @@ const OrderPage = () => {
       title: 'Free ship',
       description: 'Trên 500.000 VND',
     },
-  ]
+  ];
+
   return (
     <div style={{ background: '#f5f5fa', with: '100%', height: '100vh' }}>
       <div style={{ height: '100%', width: '1270px', margin: '0 auto' }}>
@@ -277,7 +290,7 @@ const OrderPage = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span>Giảm giá</span>
-                  <span style={{ color: '#000', fontSize: '14px', fontWeight: 'bold' }}>{convertPrice(priceDiscountMemo)}</span>
+                  <span style={{ color: '#000', fontSize: '14px', fontWeight: 'bold' }}>{convertPrice(discount)}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span>Phí giao hàng</span>
@@ -291,20 +304,41 @@ const OrderPage = () => {
                   <span style={{ color: '#000', fontSize: '11px' }}>(Đã bao gồm VAT nếu có)</span>
                 </span>
               </WrapperTotal>
+              <div style={{ marginBottom: '16px' }}>
+                <InputComponent
+                  placeholder="Nhập mã giảm giá"
+                  value={discountCode}
+                  onChange={(e) => setDiscountCode(e.target.value)}
+                />
+                <ButtonComponent
+                  onClick={handleApplyDiscount}
+                  size={40}
+                  styleButton={{
+                    background: '#9255FD',
+                    height: '48px',
+                    width: '100%',
+                    border: 'none',
+                    borderRadius: '4px',
+                    marginTop: '8px'
+                  }}
+                  textbutton={'Áp dụng mã giảm giá'}
+                  styleTextButton={{ color: '#fff', fontSize: '15px', fontWeight: '700' }}
+                />
+              </div>
+              <ButtonComponent
+                onClick={() => handleAddCard()}
+                size={40}
+                styleButton={{
+                  background: 'rgb(255, 57, 69)',
+                  height: '48px',
+                  width: '320px',
+                  border: 'none',
+                  borderRadius: '4px'
+                }}
+                textbutton={'Mua hàng'}
+                styleTextButton={{ color: '#fff', fontSize: '15px', fontWeight: '700' }}
+              />
             </div>
-            <ButtonComponent
-              onClick={() => handleAddCard()}
-              size={40}
-              styleButton={{
-                background: 'rgb(255, 57, 69)',
-                height: '48px',
-                width: '320px',
-                border: 'none',
-                borderRadius: '4px'
-              }}
-              textbutton={'Mua hàng'}
-              styleTextButton={{ color: '#fff', fontSize: '15px', fontWeight: '700' }}
-            ></ButtonComponent>
           </WrapperRight>
         </div>
       </div>
@@ -339,7 +373,6 @@ const OrderPage = () => {
             >
               <InputComponent value={stateUserDetails.phone} onChange={handleOnchangeDetails} name="phone" />
             </Form.Item>
-
             <Form.Item
               label="Adress"
               name="address"
@@ -351,7 +384,7 @@ const OrderPage = () => {
         </Loading>
       </ModalComponent>
     </div>
-  )
-}
+  );
+};
 
-export default OrderPage
+export default OrderPage;

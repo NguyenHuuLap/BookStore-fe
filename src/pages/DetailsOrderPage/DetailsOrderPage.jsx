@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   WrapperAllPrice,
   WrapperContentInfo,
@@ -26,8 +26,7 @@ import InputForm from '../../components/InputForm/InputForm';
 import ModalComponent from '../../components/ModalComponent/ModalComponent';
 import InputComponent from '../../components/InputComponent/InputComponent';
 import * as ProductService from '../../services/ProductService';
-import { useEffect } from 'react'
-import * as message from '../../components/Message/Message'
+import * as message from '../../components/Message/Message';
 
 const DetailsOrderPage = () => {
   const params = useParams();
@@ -55,16 +54,10 @@ const DetailsOrderPage = () => {
   const { isLoading, data } = queryOrder;
 
   const mutation = useMutationHooks(data => {
-    console.log('Creating comment with data:', data);
     return CommentService.createComment(data.id, data, data.token);
-  }, {
-    onError: (error) => {
-      console.error('Error creating comment:', error);
-    }
   });
 
   const handleComment = (commentData) => {
-    console.log('handleComment called with:', commentData);
     mutation.mutate(
       {
         id: commentData._id,
@@ -107,7 +100,6 @@ const DetailsOrderPage = () => {
 
   useEffect(() => {
     if (data) {
-      // Kiểm tra nếu trạng thái của đơn hàng là "complete" thì set isOrderComplete thành true
       setIsOrderComplete(data.status === 'complete');
     }
   }, [data]);
@@ -122,7 +114,6 @@ const DetailsOrderPage = () => {
   }, [isSuccess, isError]);
 
   const onFinish = values => {
-    console.log('Form submitted');
     handleComment({
       _id: selectedProduct._id,
       token: state?.token,
@@ -150,8 +141,8 @@ const DetailsOrderPage = () => {
     setSelectedProduct({
       star: '',
       comment: ''
-    })
-    form.resetFields()
+    });
+    form.resetFields();
   };
 
   return (
@@ -189,6 +180,7 @@ const DetailsOrderPage = () => {
               <WrapperItemLabel>Giá</WrapperItemLabel>
               <WrapperItemLabel>Số lượng</WrapperItemLabel>
               <WrapperItemLabel>Giảm giá</WrapperItemLabel>
+              <WrapperItemLabel>Giá sau giảm</WrapperItemLabel>
             </div>
             {data?.orderItems?.map(order => (
               <WrapperProduct key={order.id}>
@@ -213,9 +205,10 @@ const DetailsOrderPage = () => {
                     height: '70px',
                   }}>{order?.name}</div>
                 </WrapperNameProduct>
-                <WrapperItem>{convertPrice(order?.price)}</WrapperItem>
+                <WrapperItem>{convertPrice(order?.price * (1 - (order?.discount || 0) / 100))}</WrapperItem>
                 <WrapperItem>{order?.amount}</WrapperItem>
-                <WrapperItem>{order?.discount ? convertPrice(priceMemo * order?.discount / 100) : '0 VND'}</WrapperItem>
+                <WrapperItem>{order?.discount ? `${order?.discount}%` : '0%'}</WrapperItem>
+                <WrapperItem>{convertPrice(order?.price * (1 - (order?.discount || 0) / 100))}</WrapperItem>
                 {isOrderComplete && !order.isReviewed && (
                   <Button onClick={() => handleReviewClick(order)}>Đánh giá</Button>
                 )}
@@ -223,7 +216,11 @@ const DetailsOrderPage = () => {
             ))}
             <WrapperAllPrice>
               <WrapperItemLabel>Tạm tính</WrapperItemLabel>
-              <WrapperItem>{convertPrice(priceMemo)}</WrapperItem>
+              <WrapperItem>{convertPrice(data?.itemsPrice)}</WrapperItem>
+            </WrapperAllPrice>
+            <WrapperAllPrice>
+              <WrapperItemLabel>Voucher</WrapperItemLabel>
+              <WrapperItem>{convertPrice(data?.priceDiscount)}</WrapperItem>
             </WrapperAllPrice>
             <WrapperAllPrice>
               <WrapperItemLabel>Phí vận chuyển</WrapperItemLabel>

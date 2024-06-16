@@ -15,7 +15,7 @@ export const createDiscount = async (data, access_token) => {
 
 // Function to get a discount by code
 export const getDiscountByCode = async (code) => {
-    const res = await axios.get(`${API_URL}/discount/code/${code}`);
+    const res = await axios.get(`${API_URL}/discount/${code}`);
     return res.data;
 };
 
