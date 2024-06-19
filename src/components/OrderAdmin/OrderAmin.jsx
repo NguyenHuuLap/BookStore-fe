@@ -292,6 +292,15 @@ const OrderAdmin = () => {
             };
           }} />
         </TabPane>
+        <TabPane tab={`Yêu cầu hủy đơn hàng (${countOrdersByStatus('re-cancel')})`} key="re-cancel">
+          <TableComponent columns={columns} isLoading={isLoadingOrders} data={dataTable} onRow={(record, rowIndex) => {
+            return {
+              onClick: () => {
+                // Set the row as selected
+              },
+            };
+          }} />
+        </TabPane>
       </Tabs>
     </div>
   );

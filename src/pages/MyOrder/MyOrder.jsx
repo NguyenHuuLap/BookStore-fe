@@ -5,13 +5,14 @@ import { useQuery } from '@tanstack/react-query';
 import * as OrderService from '../../services/OrderService';
 import { useSelector } from 'react-redux';
 import { convertPrice } from '../../utils';
-import { 
-  WrapperItemOrder, 
-  WrapperListOrder, 
-  WrapperHeaderItem, 
-  WrapperFooterItem, 
-  WrapperContainer, 
-  WrapperStatus 
+import {
+  WrapperItemOrder,
+  WrapperListOrder,
+  WrapperHeaderItem,
+  WrapperFooterItem,
+  WrapperContainer,
+  WrapperStatus,
+  orderStatusColors
 } from './style';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMutationHooks } from '../../hooks/useMutationHook';
@@ -91,10 +92,10 @@ const MyOrderPage = () => {
   );
 
   const handleUpdateOrder = (order) => {
-    mutationUpdate.mutate({ 
-      id: order._id, 
-      orderData: { status: 'complete' }, 
-      token: state?.token 
+    mutationUpdate.mutate({
+      id: order._id,
+      orderData: { status: 'complete' },
+      token: state?.token
     }, {
       onSuccess: () => {
         queryOrder.refetch();
@@ -157,8 +158,12 @@ const MyOrderPage = () => {
     if (!Array.isArray(orders)) {
       return [];
     }
-  
+
     if (status === 'all') return orders;
+    // Filter for both 'confirm' and 're-cancel' statuses
+    if (status === 'confirm-re-cancel') {
+      return orders.filter(order => order.status === 'confirm' || order.status === 're-cancel');
+    }
     return orders.filter(order => order.status === status);
   };
 
@@ -166,39 +171,34 @@ const MyOrderPage = () => {
     return orders.map((order) => (
       <WrapperItemOrder key={order?._id}>
         <WrapperStatus>
-          <span style={{ fontSize: '14px', fontWeight: 'bold' }}>Trạng thái</span>
-          <div>
-            <span style={{ color: 'rgb(255, 66, 78)' }}>Giao hàng: </span>
-            <span style={{ color: 'rgb(90, 32, 193)', fontWeight: 'bold' }}>
-              {`${orderContant.status[order.status]}`}
-            </span>
-          </div>
-          <div>
-            <span style={{ color: 'rgb(255, 66, 78)' }}>Thanh toán: </span>
-            <span style={{ color: 'rgb(90, 32, 193)', fontWeight: 'bold' }}>
-              {`${order.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán'}`}
-            </span>
-          </div>
+          <span style={{
+            background: orderStatusColors[order.status].background,
+            color: orderStatusColors[order.status].color,
+            fontWeight: 'bold',
+            borderColor: orderStatusColors[order.status].borderColor
+          }}>
+            {`${orderContant.status[order.status]}`}
+          </span>
         </WrapperStatus>
         {renderProduct(order?.orderItems)}
         <WrapperFooterItem>
           <div>
-            <span style={{ color: 'rgb(255, 66, 78)' }}>Tổng tiền: </span>
+            <span style={{ color: '#7A7E7F' }}>Tổng tiền: </span>
             <span
-              style={{ fontSize: '13px', color: 'rgb(56, 56, 61)', fontWeight: 700 }}
+              style={{ fontSize: '13px', fontWeight: '600', color: 'rgb(56, 56, 61)'}}
             >
               {convertPrice(order?.totalPrice)}
             </span>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
-            {order.status !== 'cancel' && order.status !== 'shipping' && order.status !== 'complete' && (
+          {order.status !== 'cancel' && order.status !== 'shipping' && order.status !== 'complete' && order.status !== 're-cancel' && (
               <Button
                 onClick={() => handleCancelOrder(order)}
                 style={{
                   height: '36px',
-                  border: '1px solid #9255FD',
+                  border: `1px solid #FF4250`,
                   borderRadius: '4px',
-                  color: '#9255FD',
+                  color: '#FF4250',
                   fontSize: '14px'
                 }}
               >
@@ -209,9 +209,9 @@ const MyOrderPage = () => {
               onClick={() => handleDetailsOrder(order?._id)}
               style={{
                 height: '36px',
-                border: '1px solid #9255FD',
+                border: `1px solid #2489F4`,
                 borderRadius: '4px',
-                color: '#9255FD',
+                color: '#2489F4',
                 fontSize: '14px'
               }}
             >
@@ -222,9 +222,9 @@ const MyOrderPage = () => {
                 onClick={() => handleUpdateOrder(order)}
                 style={{
                   height: '36px',
-                  border: '1px solid #9255FD',
+                  border: `1px solid ${orderStatusColors[order.status].borderColor}`,
                   borderRadius: '4px',
-                  color: '#9255FD',
+                  color: orderStatusColors[order.status].color,
                   fontSize: '14px'
                 }}
               >
@@ -261,10 +261,10 @@ const MyOrderPage = () => {
                 )}
               </WrapperListOrder>
             </TabPane>
-            <TabPane tab={`Đã xác nhận (${filterOrders(orders, 'confirm').length})`} key="confirm">
+            <TabPane tab={`Đã xác nhận (${filterOrders(orders, 'confirm-re-cancel').length})`} key="confirm-re-cancel">
               <WrapperListOrder>
                 {orders.length > 0 ? (
-                  renderOrders(filterOrders(orders, 'confirm'))
+                  renderOrders(filterOrders(orders, 'confirm-re-cancel'))
                 ) : (
                   <div>No orders found</div>
                 )}

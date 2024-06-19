@@ -16,6 +16,7 @@ export const orderContant = {
     confirm: 'Đã xác nhận',
     shipping: 'Đang giao hàng',
     complete: 'Hoàn tất',
-    cancel: 'Bị hủy'
+    cancel: 'Bị hủy',
+    're-cancel': 'Đã gửi yêu cầu hủy đơn'
   } 
-}
+};

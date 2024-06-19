@@ -384,7 +384,7 @@ const AdminComment = () => {
         </Loading>
       </DrawerComponent>
       <ModalComponent
-        title="Xóa đánh giá"
+        title="Thay đổi trạng thái đánh giá"
         open={isModalOpenDelete}
         onCancel={handleCancelDelete}
         onOk={handleDeleteComment}

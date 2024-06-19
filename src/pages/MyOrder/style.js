@@ -81,3 +81,36 @@ export const WrapperStatus = styled.div`
   border-bottom: 1px solid rgb(235, 235, 240);
   flex-direction:column;
 `
+
+export const orderStatusColors = {
+  pending: {
+    background: '#rgba(36, 137, 244, 0.2)',
+    color: '#2489F4',
+    borderColor: '#2489F4'
+  },
+  confirm: {
+    background: '#rgba(53, 192, 124, 0.2)',
+    color: '#35C07C',
+    borderColor: '#35C07C'
+  },
+  shipping: {
+    background: '#rgba(253, 126, 20, 0.2)',
+    color: '#FD7E14',
+    borderColor: '#FD7E14'
+  },
+  complete: {
+    background: '#rgba(82, 196, 26, 0.2)',
+    color: '#52C41A',
+    borderColor: '#52C41A'
+  },
+  cancel: {
+    background: '#rgba(255, 66, 78, 0.2)',
+    color: '#FF4250',
+    borderColor: '#FF4250'
+  },
+  're-cancel': {
+    background: '#rgba(255, 66, 78, 0.2)',
+    color: '#FF4250',
+    borderColor: '#FF4250'
+  }
+};

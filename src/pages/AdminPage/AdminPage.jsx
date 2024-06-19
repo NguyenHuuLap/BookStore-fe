@@ -1,12 +1,12 @@
+import React, { useState, useMemo } from 'react';
 import { Menu } from 'antd';
-import React, { useEffect, useState, useMemo } from 'react';
-import { getItem } from '../../utils';
-import { UserOutlined, AppstoreOutlined, ShoppingCartOutlined, CommentOutlined } from '@ant-design/icons';
+import { UserOutlined, AppstoreOutlined, ShoppingCartOutlined, CommentOutlined, BarChartOutlined } from '@ant-design/icons';
 import HeaderComponent from '../../components/HeaderComponent/HeaderComponent';
 import AdminUser from '../../components/AdminUser/AdminUser';
 import AdminProduct from '../../components/AdminProduct/AdminProduct';
 import OrderAdmin from '../../components/OrderAdmin/OrderAmin';
 import AdminComment from '../../components/AdminComment/AdminComment';
+import OrderStatisticsPage from '../../components/AdminOrderStatisticsPage/AdminOrderStatisticsPage';
 import * as OrderService from '../../services/OrderService';
 import * as ProductService from '../../services/ProductService';
 import * as UserService from '../../services/UserService';
@@ -15,16 +15,20 @@ import CustomizedContent from './Components/CustomizedContent';
 import { useSelector } from 'react-redux';
 import { useQueries } from '@tanstack/react-query';
 import Loading from '../../components/LoadingComponent/Loading';
+import { Tabs } from 'antd';
+
+const { TabPane } = Tabs;
 
 const AdminPage = () => {
   const user = useSelector((state) => state?.user);
-  const [keySelected, setKeySelected] = useState('');
+  const [keySelected, setKeySelected] = useState('orders');
 
   const items = [
-    getItem('Người dùng', 'users', <UserOutlined />),
-    getItem('Sản phẩm', 'products', <AppstoreOutlined />),
-    getItem('Đơn hàng', 'orders', <ShoppingCartOutlined />),
-    getItem('Đánh giá', 'comment', <CommentOutlined />),
+    { label: 'Người dùng', key: 'users', icon: <UserOutlined /> },
+    { label: 'Sản phẩm', key: 'products', icon: <AppstoreOutlined /> },
+    { label: 'Đơn hàng', key: 'orders', icon: <ShoppingCartOutlined /> },
+    { label: 'Đánh giá', key: 'comment', icon: <CommentOutlined /> },
+    { label: 'Thống kê đơn hàng', key: 'statistics', icon: <BarChartOutlined /> },
   ];
 
   const getAllOrder = async () => {
@@ -56,13 +60,9 @@ const AdminPage = () => {
     ],
   });
 
-  // Add console log to inspect the queries array
-  console.log('queries:', queries);
-
   const memoCount = useMemo(() => {
     const result = {};
     queries.forEach((query) => {
-      console.log('query data:', query?.data); // Add console log to inspect each query's data
       if (query?.data) {
         result[query.data.key] = query.data.data?.length || 0;
       }
@@ -87,6 +87,8 @@ const AdminPage = () => {
         return <OrderAdmin />;
       case 'comment':
         return <AdminComment />;
+      case 'statistics':
+        return <OrderStatisticsPage />;
       default:
         return <></>;
     }
