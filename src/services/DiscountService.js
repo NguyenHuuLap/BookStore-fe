@@ -19,14 +19,9 @@ export const getDiscountByCode = async (code) => {
     return res.data;
 };
 
-// Function to get all discounts with optional search and pagination
-export const getAllDiscounts = async (search = '', limit = 10, page = 1) => {
-    let res;
-    if (search.length > 0) {
-        res = await axios.get(`${API_URL}/discount/get-all?filter=code&search=${search}&limit=${limit}&page=${page}`);
-    } else {
-        res = await axios.get(`${API_URL}/discount/get-all?limit=${limit}&page=${page}`);
-    }
+// Function to get all discounts
+export const getAllDiscounts = async () => {
+    const res = await axios.get(`${API_URL}/discount`);
     return res.data;
 };
 
@@ -42,7 +37,7 @@ export const updateDiscount = async (id, data, access_token) => {
 
 // Function to delete a discount
 export const deleteDiscount = async (id, access_token) => {
-    const res = await axiosJWT.delete(`${API_URL}/discount/delete/${id}`, {
+    const res = await axiosJWT.delete(`${API_URL}/discount/${id}`, {
         headers: {
             token: `Bearer ${access_token}`,
         }
@@ -57,5 +52,10 @@ export const deleteManyDiscounts = async (ids, access_token) => {
             token: `Bearer ${access_token}`,
         }
     });
+    return res.data;
+};
+
+export const getDetailDiscount = async (id) => {
+    const res = await axios.get(`${API_URL}/discount/detail/${id}`);
     return res.data;
 };

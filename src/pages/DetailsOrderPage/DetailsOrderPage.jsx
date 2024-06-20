@@ -148,7 +148,7 @@ const DetailsOrderPage = () => {
   return (
     <Loading isLoading={isLoading || isLoadingComment}>
       <div style={{ width: '100%', height: '100vh', background: '#f5f5fa' }}>
-        <div style={{ width: '1270px', margin: '0 auto', height: '1270px' }}>
+        <div style={{ width: '1270px', margin: '0 auto', paddingBottom: '20px' }}>
           <h4>Chi tiết đơn hàng</h4>
           <WrapperHeaderUser>
             <WrapperInfoUser>
@@ -175,8 +175,8 @@ const DetailsOrderPage = () => {
             </WrapperInfoUser>
           </WrapperHeaderUser>
           <WrapperStyleContent>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ width: '670px' }}>Sản phẩm</div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ width: '50%' }}>Sản phẩm</div>
               <WrapperItemLabel>Giá</WrapperItemLabel>
               <WrapperItemLabel>Số lượng</WrapperItemLabel>
               <WrapperItemLabel>Giảm giá</WrapperItemLabel>
@@ -197,12 +197,11 @@ const DetailsOrderPage = () => {
                     }}
                   />
                   <div style={{
-                    width: 260,
+                    width: '260px',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
                     marginLeft: '10px',
-                    height: '70px',
                   }}>{order?.name}</div>
                 </WrapperNameProduct>
                 <WrapperItem>{convertPrice(order?.price * (1 - (order?.discount || 0) / 100))}</WrapperItem>
@@ -210,7 +209,9 @@ const DetailsOrderPage = () => {
                 <WrapperItem>{order?.discount ? `${order?.discount}%` : '0%'}</WrapperItem>
                 <WrapperItem>{convertPrice(order?.price * (1 - (order?.discount || 0) / 100))}</WrapperItem>
                 {isOrderComplete && !order.isReviewed && (
-                  <Button onClick={() => handleReviewClick(order)}>Đánh giá</Button>
+                  <Button type="primary" onClick={() => handleReviewClick(order)} style={{ marginLeft: 'auto' }}>
+                    Đánh giá
+                  </Button>
                 )}
               </WrapperProduct>
             ))}
@@ -220,7 +221,7 @@ const DetailsOrderPage = () => {
             </WrapperAllPrice>
             <WrapperAllPrice>
               <WrapperItemLabel>Voucher</WrapperItemLabel>
-              <WrapperItem>{convertPrice(data?.priceDiscount)}</WrapperItem>
+              <WrapperItem>{convertPrice(data?.priceDiscount || 0)}</WrapperItem>
             </WrapperAllPrice>
             <WrapperAllPrice>
               <WrapperItemLabel>Phí vận chuyển</WrapperItemLabel>

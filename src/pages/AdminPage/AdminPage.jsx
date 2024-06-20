@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Menu } from 'antd';
-import { UserOutlined, AppstoreOutlined, ShoppingCartOutlined, CommentOutlined, BarChartOutlined } from '@ant-design/icons';
+import { UserOutlined, AppstoreOutlined, ShoppingCartOutlined, CommentOutlined, BarChartOutlined, DollarOutlined } from '@ant-design/icons';
 import HeaderComponent from '../../components/HeaderComponent/HeaderComponent';
 import AdminUser from '../../components/AdminUser/AdminUser';
 import AdminProduct from '../../components/AdminProduct/AdminProduct';
 import OrderAdmin from '../../components/OrderAdmin/OrderAmin';
 import AdminComment from '../../components/AdminComment/AdminComment';
 import OrderStatisticsPage from '../../components/AdminOrderStatisticsPage/AdminOrderStatisticsPage';
+import AdminDiscount from '../../components/AdminDiscount/AdminDiscount'; 
 import * as OrderService from '../../services/OrderService';
 import * as ProductService from '../../services/ProductService';
 import * as UserService from '../../services/UserService';
@@ -29,6 +30,7 @@ const AdminPage = () => {
     { label: 'Đơn hàng', key: 'orders', icon: <ShoppingCartOutlined /> },
     { label: 'Đánh giá', key: 'comment', icon: <CommentOutlined /> },
     { label: 'Thống kê đơn hàng', key: 'statistics', icon: <BarChartOutlined /> },
+    { label: 'Discount', key: 'discount', icon: <DollarOutlined /> }, // Add the new tab for discounts
   ];
 
   const getAllOrder = async () => {
@@ -75,6 +77,7 @@ const AdminPage = () => {
     products: ['#a8c0ff', '#3f2b96'],
     orders: ['#11998e', '#38ef7d'],
     comment: ['#ff5f6d', '#ffc371'],
+    discount: ['#34e89e', '#0f3443'], // Add colors for the discount tab
   };
 
   const renderPage = (key) => {
@@ -89,6 +92,8 @@ const AdminPage = () => {
         return <AdminComment />;
       case 'statistics':
         return <OrderStatisticsPage />;
+      case 'discount':
+        return <AdminDiscount />; // Add the new component to render
       default:
         return <></>;
     }

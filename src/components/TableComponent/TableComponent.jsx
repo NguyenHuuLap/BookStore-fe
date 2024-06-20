@@ -55,6 +55,7 @@ const TableComponent = (props) => {
         }}
         columns={columns}
         dataSource={dataSource}
+        pagination={{ pageSize: 10 }}
         {...props}
       />
     </Loading>
